@@ -5,6 +5,7 @@ const Login = () => import('@/components/Login')
 const Index = () => import('@/components/Index')
 const Map = () => import('@/components/map/Map')
 const AddMap = () => import('@/components/map/AddMap')
+const TestMap = () => import('@/components/map/TestMap')
 export default new Router({
   mode: 'history',
 	base: '/',
@@ -43,6 +44,15 @@ export default new Router({
 			meta: {
 				title: '添加地图',
 				requireAuth: true
+			}
+		},
+		{
+			path: '/map/test-map',
+			name: 'TestMap',
+			component: TestMap,
+			meta: {
+				title: '测试地图',
+				requireAuth: false
 			}
 		}
 	]
