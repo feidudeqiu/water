@@ -8,7 +8,8 @@ import ImageWMS from 'ol/source/ImageWMS';
 import GeoJSON from 'ol/format/GeoJSON';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Point from 'ol/geom/Point';
-import {Icon, Style, Text, Fill} from 'ol/style';
+import Polygon from 'ol/geom/Polygon';
+import {Icon, Style, Text, Fill, Circle, Stroke} from 'ol/style';
 import VectorSource from 'ol/source/Vector';
 import ContextMenu from 'ol-contextmenu'
 import Overlay from 'ol/Overlay';
@@ -17,6 +18,7 @@ import * as olProj from 'ol/proj';
 import TileImage from 'ol/source/TileImage';
 import TileGrid from 'ol/tilegrid/TileGrid';
 import { v4 as uuidv4 } from 'uuid';
+import {fromLonLat} from 'ol/proj'
 import TianDiTu from './tianditu'
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
@@ -106,6 +108,105 @@ class MarkerLayer {
         this.vectorSource.addFeature(marker);
     }
 }
+class PopupLayer {
+    constructor() {
+        var that = this;
+        /**
+         * Elements that make up the popup.
+         */
+        /**
+         * <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-content"></div>
+		    </div>
+         */
+        this.container = document.createElement("div");
+        this.container.setAttribute("class","ol-popup");
+
+        this.closer = document.createElement("a");
+        this.closer.setAttribute("class","ol-popup-closer");
+        this.closer.setAttribute("href","#");
+
+        this.content = document.createElement("div");
+        
+        this.container.appendChild(this.closer);
+        this.container.appendChild(this.content);
+        
+        this.overlay = new Overlay({
+            element: this.container,
+            autoPan: true,
+            autoPanAnimation: {
+               duration: 250,
+            },
+        });
+
+        this.closer.onclick = function () {
+            that.overlay.setPosition(undefined);
+            closer.blur();
+            return false;
+        };
+    }
+    getOverLay() {
+        return this.overlay
+    }
+    setPosition(coordinate) {
+        this.overlay.setPosition(coordinate);
+    }
+    showInfo(ht,coordinate) {
+        this.content.innerHTML = ht;
+        this.setPosition(coordinate);
+    }
+    getContainer() {
+        return this.container;
+    }
+}
+class PolygonLayer {
+    constructor() {
+        this.vectorSource = new VectorSource({
+            features: []
+        });
+        this.vectorLayer = new VectorLayer({
+            source: this.vectorSource,
+            style: new Style({
+                fill: new Fill({
+                    color: 'rgba(255, 255, 255, 0.1)'
+                }),
+                stroke: new Stroke({
+                    color: 'red',
+                    width: 2
+                }),
+                image: new Circle({
+                    radius: 10,
+                    fill: new Fill({
+                        color: '#ffcc33'
+                    })
+                })
+            })
+        });
+    }
+    addPloygon(coordinates,data,props,type) {
+        var featureData = {
+            geometry: new Polygon(coordinates),
+            id: props.id,
+            type: type,
+            custom: {
+
+            }
+        }
+        for(let key in data) {
+            featureData.custom[key] = data[key];
+        }
+        var ploygon = new Feature(featureData);
+        ploygon.setId(props.id);
+        this.vectorSource.addFeature(ploygon);
+    }
+    removePloygon(id) {
+        this.vectorSource.removeFeature(this.vectorSource.getFeatureById(id));
+    }
+    getLayer() {
+        return this.vectorLayer;
+    }
+}
 function initMap(layers, view) {
     data.map = new Map({
         target: 'map',
@@ -119,6 +220,8 @@ export default{
     initContextMenu,
     getViewByDemo,
     MarkerLayer,
+    PolygonLayer,
     getVECLayer,
-    getCVALayer
+    getCVALayer,
+    PopupLayer
 }
