@@ -25,10 +25,16 @@
       <router-view></router-view>
     </el-col>
   </el-row>
+
+  <div>
+      用户中心
+  </div>
+
 </template>
 
 <script>
 export default {
+
   name: "UserCenter",
   methods:{
 
@@ -41,3 +47,8 @@ export default {
   background-color: #011a37;
 }
 </style>
+
+
+
+
+
