@@ -7,6 +7,8 @@ const Map = () => import('@/components/map/Map')
 const AddMap = () => import('@/components/map/AddMap')
 const TestMap = () => import('@/components/map/TestMap')
 const UserCenter = () => import('@/components/UserCenter')
+const UcManage = () => import('@/components/UcManage')
+const UcChangepwd = () => import('@/components/UcChangepwd')
 export default new Router({
   mode: 'history',
 	base: '/',
@@ -59,7 +61,18 @@ export default new Router({
 		{
 			path: '/user-center',
 			name: 'UserCenter',
+      redirect: '/user-center/uc-changepwd',
 			component: UserCenter,
+      children: [
+        {
+          path:'/user-center/uc-changepwd',
+          component: UcChangepwd
+        },
+        {
+          path:'/user-center/uc-manage',
+          component: UcManage
+        },
+      ],
 			meta: {
 				title: '用户中心',
 				requireAuth: true
