@@ -5,7 +5,7 @@ const Login = () => import('@/components/Login')
 const Index = () => import('@/components/Index')
 const Map = () => import('@/components/map/Map')
 const AddMap = () => import('@/components/map/AddMap')
-const TestMap = () => import('@/components/map/TestMap')
+const MapTest = () => import('@/components/map/MapTest')
 const UserCenter = () => import('@/components/UserCenter')
 const UcManage = () => import('@/components/UcManage')
 const UcChangepwd = () => import('@/components/UcChangepwd')
@@ -21,18 +21,19 @@ export default new Router({
 					title: '登录'
 				}
 		},
+		// {
+		// 	path: '/',
+		// 	alias: '/index',
+		// 	name: 'Index',
+		// 	component: Index,
+		// 	meta: {
+		// 			title: '首页',
+		// 			requireAuth: true
+		// 		}
+		// },
 		{
 			path: '/',
 			alias: '/index',
-			name: 'Index',
-			component: Index,
-			meta: {
-					title: '首页',
-					requireAuth: true
-				}
-		},
-		{
-			path: '/map',
 			name: 'Map',
 			component: Map,
 			meta: {
@@ -50,9 +51,9 @@ export default new Router({
 			}
 		},
 		{
-			path: '/map/test-map',
-			name: 'TestMap',
-			component: TestMap,
+			path: '/map/map-test',
+			name: 'MapTest',
+			component: MapTest,
 			meta: {
 				title: '测试地图',
 				requireAuth: false

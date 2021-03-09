@@ -16,7 +16,7 @@
 						<div class="choice">GS</div>
 					</div>
 
-					<div v-if="isAdministrator" class="flex-row-inline menu-item" @click="$router.push('/users');">
+					<div v-if="isAdministrator" class="flex-row-inline menu-item" @click="$router.push('/user-center');">
 						<img class="menu-icon" src="~static/img/username.png" />
 						<div class="choice">用户管理</div>
 					</div>
@@ -112,7 +112,7 @@ export default {
 			return this.username;
 		},
 		isAdministrator() {
-			return this.$store.getters.get_role === 2;
+			return this.$store.getters.get_role >= 2;
 		},
 		username() {
 			return this.$store.getters.get_username;

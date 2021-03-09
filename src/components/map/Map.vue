@@ -1,576 +1,754 @@
 <template>
-	<div>
-		<div style="height:100%;width:100%;display:flex;">
-			<div id="map" ref="rootmap" class="map"></div>
-			<div class="column">
-				<div class="marker-item">
-					<span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'X:'+current.location[0]}}</span>
-					<span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'Y:'+current.location[1]}}</span>
-				</div>
-				<div class="list">
-					<div class="marker-item" v-for="marker in markers" v-bind:key="marker.id">
-						<div class="marker-item-info" style="cursor:pointer;" @click="jump(marker.location[0],marker.location[1])">
-							<img src="~static/img/marker.png" style="height:20px;margin-left:5px;margin-right:10px;" >
-							<span class="text-normal text-h6">{{marker.name}}</span>
-						</div>
-						<div class="marker-item-info">
-							<i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-							<span class="text-normal text-h6">{{marker.username}}</span>
-						</div>
-						<div  class="marker-item-info">
-							<i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-							<span class="text-normal text-h6">{{'('+parseFloat(marker.location[0]).toFixed(5)+','+parseFloat(marker.location[1]).toFixed(5)+')'}}</span>
-						</div>
-						<div  class="marker-item-info">
-							<i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-							<span class="text-normal text-h6">{{marker.note}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			
-		</div>
+    <div>
+        <div style="height:100%;width:100%;display:flex;">
+            <div id="map" ref="rootmap" class="map"></div>
+            <div class="column">
+                <el-tabs v-model="tab" type="card" >
+                    <el-tab-pane label="湖泊" name="lake">
+                        <el-collapse accordion>
+                            <el-collapse-item v-for="lake in lakes" v-bind:key="lake.lakeInfo.id">
+                                <template slot="title">
+                                    <span class="text-h4 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
+                                </template>
+                                <div>
+                                    <div class="marker-item" style="margin-top:0px;"  v-for="monitor in lake.monitors" v-bind:key="monitor.props.id">
+                                        <div class="marker-item-info" style="margin-top:0px;cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
+                                            <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                            <span class="text-normal text-h6">{{monitor.props.name}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </el-collapse-item>
+                        </el-collapse>
+                    </el-tab-pane>
+                    <el-tab-pane label="标记" name="marker">
+                        <el-input placeholder="请输入搜索内容" size="mini" prefix-icon="el-icon-search" v-model="markerInput"></el-input>
+                        <div class="marker-item" v-for="marker in markers" v-bind:key="marker.props.id">
+                            <div class="marker-item-info" style="cursor:pointer;" @click="jump(marker.props.location[0],marker.props.location[1])">
+                                <img src="~static/img/marker.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                <span class="text-normal text-h6">{{marker.props.name}}</span>
+                            </div>
+                            <div class="marker-item-info">
+                                <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{marker.featureData.username}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{'('+parseFloat(marker.props.location[0]).toFixed(5)+','+parseFloat(marker.props.location[1]).toFixed(5)+')'}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{marker.featureData.note}}</span>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="检测点" name="monitor">
+                        <el-input size="mini" placeholder="请输入搜索内容" prefix-icon="el-icon-search" v-model="markerInput"></el-input>
+                        <div class="marker-item" v-for="monitor in monitors" v-bind:key="monitor.props.id">
+                            <div class="marker-item-info" style="cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
+                                <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                <span class="text-normal text-h6">{{monitor.props.name}}</span>
+                            </div>
+                            <div class="marker-item-info">
+                                <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{monitor.featureData.username}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{'('+parseFloat(monitor.props.location[0]).toFixed(5)+','+parseFloat(monitor.props.location[1]).toFixed(5)+')'}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{monitor.featureData.note}}</span>
+                            </div>
+                            <div class="marker-item-info" >
+                                 <i class="el-icon-setting" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <img src="~static/img/table.png" title="水质数据" @click="showWaterQualities(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
+                                <img src="~static/img/update.png" title="更新水质数据" @click="updateWaterQuality(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="标准" name="standard">
+                        <el-card >
+                            <span style="cursor:pointer;" @click="waterQualityStandardVisible = true;getWaterQualityStandard()" class="text-h5 text-thick text-primary">水质标准</span>
+                        </el-card>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+        </div>
+        <el-dialog title="添加标记" :visible.sync="addMarkerDialogVisible">
+            <el-form :model="addMarkerInfo">
+                <span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'X:'+addMarkerInfo.location[0]}}</span>
+                <span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'Y:'+addMarkerInfo.location[1]}}</span>
+                <el-form-item label="标记名称">
+                    <el-input v-model="addMarkerInfo.name" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="标记注释">
+                    <el-input v-model="addMarkerInfo.note" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="addMarkerDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addMarkerDialog()">确 定</el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="添加检测点" :visible.sync="addMonitorDialogVisible">
+            <el-form :model="addMonitorInfo">
+                <span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'X:'+addMonitorInfo.location[0]}}</span>
+                <span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'Y:'+addMonitorInfo.location[1]}}</span>
+                <el-form-item label="检测点名称">
+                    <el-input v-model="addMonitorInfo.name" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="检测点注释">
+                    <el-input v-model="addMonitorInfo.note" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="addMonitorDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addMonitorDialog()">确 定</el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="添加水质检测数据" :visible.sync="addWaterQualityDialogVisible">
+            <el-form size="mini" label-width="100px" :model="addWaterQualityInfo">
+                <el-form-item label="TN">
+                    <el-input type="number" v-model="addWaterQualityInfo.tn" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="TP">
+                    <el-input type="number" v-model="addWaterQualityInfo.tp" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="叶绿素">
+                    <el-input  type="number" v-model="addWaterQualityInfo.chlorophyll" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="DO">
+                    <el-input type="number" v-model="addWaterQualityInfo.o2" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="COD">
+                    <el-input type="number" v-model="addWaterQualityInfo.cod" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="BOD">
+                    <el-input type="number" v-model="addWaterQualityInfo.bod" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="检测时间">
+                    <el-date-picker v-model="addWaterQualityInfo.monitorTime" type="datetime"></el-date-picker>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="addWaterQualityDialogVisible = false">取消</el-button>
+                <el-button type="primary" @click="addWaterQualityDialog()">更新</el-button>
+            </div>
+        </el-dialog>
+        <el-dialog title="水质数据" :visible.sync="waterQualityVisible">
+            <el-table :data="waterQualityById">
+                <el-table-column :sortable="true" width="200px" :formatter="formatTime" property="monitorTime" label="检测时间"></el-table-column>
+                <el-table-column property="tn" label="TN" ></el-table-column>
+                <el-table-column property="tp" label="TP"></el-table-column>
+                <el-table-column property="chlorophyll" label="叶绿素"></el-table-column>
+                <el-table-column property="o2" label="DO"></el-table-column>
+                <el-table-column property="cod" label="COD"></el-table-column>
+                <el-table-column property="bod" label="BOD"></el-table-column>   
+                <el-table-column  width="200">
+                    <template slot="header" slot-scope="scope">
+                        <el-button size="mini" @click="qualityAnalyse()">水质评价</el-button>
+                    </template>
+                    <template slot-scope="scope">
+                        <el-dropdown v-if="scope.row.res !== undefined">
+                            <span class="el-dropdown-link">
+                                评价结果<i class="el-icon-arrow-down el-icon--right"></i>
+                            </span>
+                            <el-dropdown-menu slot="dropdown">
+                                <el-dropdown-item>{{"TN("+getLevel(scope.row.res.tnLevel)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"TP("+getLevel(scope.row.res.tpLevel)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"叶绿素("+getLevel(scope.row.res.chlorophyllLevel)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"DO("+getLevel(scope.row.res.o2Level)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"COD("+getLevel(scope.row.res.codLevel)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"BOD("+getLevel(scope.row.res.bodLevel)+")"}}</el-dropdown-item>
+                                <el-dropdown-item>{{"整体("+(judgeStandard(scope.row.res)?"合格":"不合格")+")"}}</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                        <el-button @click="waterQualityPurify(scope.row.res.id)" size="mini" v-if="scope.row.res !== undefined && (!judgeStandard(scope.row.res))">获取配方</el-button>
+                    </template>
+                </el-table-column>                 
+            </el-table>
+        </el-dialog>
 
-		<div id="popup" class="ol-popup">
-			<a href="#" id="popup-closer" class="ol-popup-closer"></a>
-			<div id="popup-content"></div>
-		</div>
+        <el-dialog title="水质标准" :visible.sync="waterQualityStandardVisible">
+            <el-table max-height="350" :data="waterQualityStandard">
+                <el-table-column property="name" label="名称" ></el-table-column>
+                <el-table-column property="level1" label="Ⅰ类"></el-table-column>
+                <el-table-column property="level2" label="Ⅱ类"></el-table-column>
+                <el-table-column property="level3" label="Ⅲ类"></el-table-column>
+                <el-table-column property="level4" label="Ⅳ类"></el-table-column>
+                <el-table-column property="level5" label="Ⅴ类"></el-table-column>         
+            </el-table>
+        </el-dialog>
 
-		<el-dialog title="添加标记" :visible.sync="addMarkerDialogVisible">
-			<el-form :model="addMarkerInfo">
-				<span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'X:'+addMarkerInfo.location[0]}}</span>
-				<span class="text-normal text-h6" style="text-align:left;margin-left:10px;">{{'Y:'+addMarkerInfo.location[1]}}</span>
-				<el-form-item label="标记名称">
-					<el-input v-model="addMarkerInfo.name" autocomplete="off"></el-input>
-				</el-form-item>
-				<el-form-item label="标记注释">
-					<el-input v-model="addMarkerInfo.note" autocomplete="off"></el-input>
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click="addMarkerDialogVisible = false">取 消</el-button>
-				<el-button type="primary" @click="addMarkerDialog()">确 定</el-button>
-			</div>
-		</el-dialog>
-	</div>
+        <el-dialog title="水体配方" :visible.sync="waterPurifyVisible">
+            <el-table :data="waterPurify">
+                <el-table-column property="wdBod" label="wdBod"></el-table-column>
+                <el-table-column property="wdCh" label="wdCh"></el-table-column>
+                <el-table-column property="wdCod" label="wdCod"></el-table-column>
+                <el-table-column property="wdDo" label="wdDo"></el-table-column>
+                <el-table-column property="wdTn" label="wdTn"></el-table-column>
+                <el-table-column property="wdTp" label="wdTp"></el-table-column>
+                <el-table-column property="wfBod" label="wfBod"></el-table-column>
+                <el-table-column property="wfCh" label="wfCh"></el-table-column>
+                <el-table-column property="wfCod" label="wfCod"></el-table-column>
+                <el-table-column property="wfDo" label="wfDo"></el-table-column>
+                <el-table-column property="wfFp" label="wfFp"></el-table-column>
+                <el-table-column property="wfTn" label="wfTn"></el-table-column>
+            </el-table>
+        </el-dialog>
+        
+  </div>
 </template>
+
 <script>
-import 'ol/ol.css';
-import 'ol-contextmenu'
-import 'ol-contextmenu/dist/ol-contextmenu.css'
-import {Map, View} from 'ol';
-import Feature from 'ol/Feature';
-import {Tile as TileLayer, Image as ImageLayer, Vector as VectorLayer} from 'ol/layer';
-import ImageWMS from 'ol/source/ImageWMS';
-import GeoJSON from 'ol/format/GeoJSON';
-import VectorImageLayer from 'ol/layer/VectorImage';
-import Point from 'ol/geom/Point';
-import {Icon, Style, Text, Fill} from 'ol/style';
-import VectorSource from 'ol/source/Vector';
-import ContextMenu from 'ol-contextmenu'
-import Overlay from 'ol/Overlay';
+import Map from './js/map'
 import domtoimage from 'dom-to-image';
-import mapStyle from './js/mapStyle'
 export default {
-	name: 'Map',
+    name: 'Map',
 	data(){
 		return{
-			map: null,
-			vectorLayer: null,
-			view: null,
-			contextmenu: null,
-			layers: null,
-			source: null,
-				overlay: null,
-				// for initPopup
-			addMarkerDialogVisible:false,
-			addMarkerInfo: {
+            map: null,
+            view: null,
+            contextMenu:null,
+            addMarkerInfo: {
 				name: '',
 				location: [],
 				note: ''
-			},
-			mapInfo: {
+            },
+            addMarkerDialogVisible: false,
+            addMonitorInfo: {
+                name: '',
+				location: [],
+                note: '',
+                lakeId: ''
+            },
+            addMonitorDialogVisible: false,
+            markerLayers: {
 
-			},
-			markers: [
-				
-			],
-			current: {
-				location: [113,30]
-			},
-			properties: [
+            },
+            ploygonLayers: {
 
-			],
-			highlightFeatures: [
+            },
+            popupLayer: null,
+            rawMarkers: [
 
-			]
-		};
-	},
-	mounted() {
-		var id = this.$route.query.id;
-		var that = this;
-		this.axios
-            .get("/api/map/get-map-info?id="+id)
-            .then(function(res) {
-				that.mapInfo = res.data.map;
-				// init map
-				that.initMap();
+            ],
+            rawMonitors: [
 
-				that.initProperties();
-				// init menu is after initProperties
-				
-				// init event
-				that.initEvent();
+            ],
+            rawLakes: [
 
-				that.initPopup();
+            ],
+            tab: 'lake',
+            markerInput: "",
+            monitorInput: "",
+            waterQualityVisible: false,
+            waterQualityById: [],
+            addWaterQualityDialogVisible: false,
+            addWaterQualityInfo: {
+                tn: 0,
+                tp: 0,
+                chlorophyll: 0,
+                o2: 0,
+                cod: 0,
+                bod: 0,
+                monitorTime: null,
+                monitorId: 0
+            },
+            waterQualityStandardVisible: false,
+            waterQualityStandard: [
 
-				that.getMarkers();
-				
-            })
-            .catch(function(err) {
-                that.$message.error(err.response.data.message);
-			})
-	},
-	methods:{
-		getMarkers() {
-			var id = this.$route.query.id;
-			var that = this;
-			this.axios
-            .get("/api/marker/get-markers?mapId="+id)
-            .then(function(res) {
-				var markers = res.data.markers;
-				for(let marker of markers) {
-					marker.location = JSON.parse(marker.location);
-				}
-				that.markers = markers;
-				that.initMarkers();
-            })
-            .catch(function(err) {
-                that.$message.error(err.response.data.message);
-            })
-		},
-		initMap() {
-			var url = this.mapInfo.url;
-			var that = this;
-			this.view = new View({
-				projection: that.mapInfo.projection,    //当添加投影坐标时，无法进行绘制
-				center: JSON.parse(that.mapInfo.center),
-				zoom: that.mapInfo.zoom
-			});
-			this.source = new ImageWMS({    //TileWMS、ImageWMS
-				ratio: 1,
-				params: {
-					'FORMAT': 'image/jpeg',
-					'VERSION': '1.1.0',
-					'LAYERS': that.mapInfo.layer,
-					'STYLES': '',
-				},
-				url: url+"/wms",
-				crossOrigin:'anonymous'
-			});
-			this.layers =  [
-					new ImageLayer({     //TileLayer、ImageLayer
-						source: that.source,
-						style: mapStyle.delightStyle 
-					}),
-			],
-			
-			// this.source = new VectorSource({    //TileWMS、ImageWMS
-			// 	url: that.mapInfo.url+'/ows?service=WFS&version=1.0.0&request=GetFeature&typeName='+that.mapInfo.layer+'&outputFormat=application/json',
-        	// 	format: new GeoJSON(),
-			// });
-			// this.layers =  [
-			// 		new VectorLayer({     //TileLayer、ImageLayer
-			// 			source: that.source,
-			// 			style: mapStyle.delightStyle 
-			// 		}),
-			// ],
-
-			this.map = new Map({
-				target: "map",
-				layers: that.layers,
-				view: that.view
-			});
-
-			var vectorSource = new VectorSource({
-					features: []
-			});
-			this.vectorLayer = new VectorLayer({
-				source: vectorSource
-			});
-			this.map.addLayer(this.vectorLayer);
-		},
-		initMenu() {
-			var that = this;
-			var contextmenuItems = [
+            ],
+            waterPurifyVisible: false,
+            waterPurify: []
+        }
+    },
+    computed: {
+        markers() {
+            return this.rawMarkers.filter(marker=>
+                !this.markerInput || marker.featureData.username.includes(this.markerInput) ||  marker.props.name.includes(this.markerInput) || marker.featureData.note.includes(this.markerInput) 
+            )
+        },
+        monitors() {
+            return this.rawMonitors.filter(monitor=>
+                !this.monitorInput || monitor.featureData.username.includes(this.monitorInput) || monitor.props.name.includes(this.monitorInput) || monitor.featureData.note.includes(this.monitorInput) 
+            )
+        },
+        lakes() {
+            var lakes = [];
+            for(let i = 0; i < this.rawLakes.length; i++) {
+                var rawLake = this.rawLakes[i];
+                var lake = {lakeInfo: rawLake};
+                lake.monitors = this.rawMonitors.filter(monitor=>{
+                    return monitor.featureData.lakeId === rawLake.id;
+                })
+                lakes.push(lake);
+            }
+            return lakes;
+        }
+    },
+    methods: {
+        initContextMenu() {
+            var contextmenuItems = [
 				{
 					text: '添加标记',
 					classname: 'bold',
 					icon: '/static/img/marker.png',
 					callback: this.addMarkerCallback
-				},
+                },
 				{
 					text: '保存图片',
 					classname: 'bold',
 					icon: '/static/img/download_color.png',
-					callback: this.saveAsPng
-				},
-				{
-					text: "查看详情",
+					callback: this.saveAsPngCallback
+				}
+            ];
+            this.contextMenu.clear();
+            this.contextMenu.extend(contextmenuItems);
+            this.contextMenu.on('open', evt=> {
+                var feature =	this.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
+                var removeMarkerItem = {
+                    text: '删除标记',
+                    icon: '/static/img/marker.png',
+                    callback: this.removeMarkerCallback
+                };
+                var removeMonitorItem = {
+                    text: '删除检测点',
+                    icon: '/static/img/marker.png',
+                    callback: this.removeMonitorCallback
+                };
+                var updateWaterQuality = {
+                    text: '更新水质数据',
+                    icon: '/static/img/update.png',
+                    callback: this.updateWaterQualityCallback
+                }
+                var showLakeInfo = {
+                    text: '获取湖泊信息',
+                    icon: '/static/img/info.png',
+                    callback: this.showLakeInfoCallback
+                }
+                var addMonitorItem = {
+                    text: '添加检测点',
 					classname: 'bold',
-					icon: '/static/img/info.png',
-					callback: this.showInfo
-				}
-			];
-			var search = {
-					text: "查找",
-					classname: 'bold',
-					icon: '/static/img/map_search.png'
-			};
-			contextmenuItems.push(search);
-			search.items = [];
-			for(let i = 0; i < this.properties.length; i++) {
-				var item = {
-					text :this.properties[i].rename,
-					icon : '/static/img/map_search.png',
-					data : {
-						name: this.properties[i].name,
-						rename: this.properties[i].rename
-					},
-					callback: this.searchCallback
-				}
-				search.items.push(item);
-			}
-			this.contextmenu = new ContextMenu({
-				width: 180,
-				items: contextmenuItems
+					icon: '/static/img/monitor.png',
+					callback: this.addMonitorCallback
+                }
+				if (feature && (feature.get('type') === 'marker')) {
+					this.contextMenu.clear();
+					removeMarkerItem.data = { feature: feature,type: "marker" };
+					this.contextMenu.push(removeMarkerItem);
+				} else if (feature && (feature.get('type') === 'monitor')) {
+                    this.contextMenu.clear();
+                    removeMonitorItem.data = { feature: feature,type: "monitor" };
+                    updateWaterQuality.data = { feature: feature};
+                    this.contextMenu.push(updateWaterQuality);
+                    this.contextMenu.push(removeMonitorItem);
+				} else if (feature && (feature.get('type') === 'lake')) {
+                    this.contextMenu.clear();
+                    this.contextMenu.extend(contextmenuItems);
+                    showLakeInfo.data = { feature: feature};
+                    addMonitorItem.data = {feature: feature};
+                    this.contextMenu.push(showLakeInfo);
+                    this.contextMenu.push(addMonitorItem);
+                } else {
+                    this.contextMenu.clear();
+					this.contextMenu.extend(contextmenuItems);
+                }
 			});
-			var contextmenu = this.contextmenu;
-			this.map.addControl(contextmenu);
-
-			var removeMarkerItem = {
-				text: '删除标记',
-				icon: '/static/img/marker.png',
-				callback: this.removeMarkerCallback
-			};
-			contextmenu.on('open', function (evt) {
-				var feature =	that.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
-				if (feature && feature.get('type') === 'marker') {
-					contextmenu.clear();
-					removeMarkerItem.data = { marker: feature };
-					contextmenu.push(removeMarkerItem);
-				} else {
-					contextmenu.clear();
-					contextmenu.extend(contextmenuItems);
-				}
-			});
-		},
-		initEvent() {
-			var that = this;
+        },
+        initEvent() {
+            var that = this;
 			this.map.on('pointermove',function(evt) {
 				var feature =	that.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
-				that.current.location = evt.coordinate;
-				if (feature && feature.get('type') === 'marker') {
+				if (feature && (feature.get('type') === 'marker' || feature.get('type') === 'monitor')) {
 					that.map.getTargetElement().style.cursor = 'pointer';
 				} else {
 					that.map.getTargetElement().style.cursor = '';
 				}
 			});
-			this.map.on('singleclick', function (evt) {
-				var feature =	that.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
-				if (feature && feature.get('type') === 'marker') {
-					
-				}
-			});
-		},
-		initMarkers() {
-			for(let marker of this.markers) {
-				this.addMarker(marker.location[0],marker.location[1],marker);
-			}
-		},
-		initPopup() {
+        },
+        saveAsPngCallback() {
 			var that = this;
-			/**
-			 * Elements that make up the popup.
-			 */
-			var container = document.getElementById('popup');
-			var content = document.getElementById('popup-content');
-			var closer = document.getElementById('popup-closer');
-
-			/**
-			 * Create an overlay to anchor the popup to the map.
-			 */
-			this.overlay = new Overlay({
-				element: container,
-				autoPan: true,
-				autoPanAnimation: {
-					duration: 250,
-				},
-			});
-
-			closer.onclick = function () {
-				that.overlay.setPosition(undefined);
-				closer.blur();
-				that.delightFeature();
-				return false;
-			};
-
-			this.map.addOverlay(this.overlay);
-		},
-		initProperties() {
-			this.axios.get("/api/map/get-map-properties?id="+ this.$route.query.id)
-			.then(res=>{
-				this.properties = res.data.properties;
-				this.initMenu();
-			})
-			.catch(err=>{
-				this.$message.error(err.response.data.message);
-			})
-		},
-		saveAsPng() {
-			var that = this;
-			this.contextmenu.close();
+			this.contextMenu.close();
 			setTimeout(()=>{
 				domtoimage.toBlob(document.getElementById('map'))
 				.then(function (blob) {
 					const a = document.createElement("a");
 					const url = window.URL.createObjectURL(blob);
-					const filename = that.mapInfo.name+".png";
+					const filename = "map.png";
 					a.href = url;
 					a.download = filename;
 					a.click();
 					window.URL.revokeObjectURL(url)
 				});
 			},300);
-		},
-		showInfo(e) {
-			var features = this.layers[0].getSource().getFeaturesAtCoordinate(e.coordinate);
-			// var pixel = this.map.getPixelFromCoordinate(e.coordinate);
-			// this.layers[0].getFeatures(pixel).then((features)=> {
-				console.info(features);
-				var feature = features.length > 0 ? features[0] : undefined;
-				if(feature === undefined) {
-					this.$message.info("该地点无详情信息");
-					return;
-				}
-				this.delightFeature();
-				this.highlightFeature(feature);
-				var info = "";
-				for(let i = 0; i < this.properties.length; i++) {
-					info+="<span style='font-size:14px;'>"+this.properties[i].rename+":"+feature.values_[this.properties[i].name]+"</span></br>"
-				}
-				this.showPopup(info,e.coordinate);
-			// });
-			// var that = this;
-			// let infoUrl = this.source.getFeatureInfoUrl(e.coordinate, this.view.getResolution(), "EPSG:4326", {
-			// 	INFO_FORMAT: 'application/json',
-			// 	QUERY_LAYERS: that.mapInfo.layer
-			// })
-			// if (infoUrl) {
-			// 	this.axios.get(infoUrl)
-			// 	.then(res=>{
-			// 		var info = ""
-
-			// 	})
-			// }
-		},
-		showPopup(ht,coordinate) {
-			var content = document.getElementById('popup-content');
-			content.innerHTML = ht;
-			this.overlay.setPosition(coordinate);
-		},
-		addMarkerCallback(e) {
-			this.addMarkerInfo = {
+        },
+        showLakeInfoCallback(obj) {
+            var ht = "";
+            var custom = obj.data.feature.values_.custom;
+            ht+="<span style='font-size:14px;'>湖泊名称:"+custom.name+"</span></br>";
+            ht+="<span style='font-size:14px;'>面积:"+parseFloat(custom.area).toFixed(2)+"(平方米)</span></br>";
+            ht+="<span style='font-size:14px;'>平均深度:"+parseFloat(custom.height).toFixed(2)+"(米)</span></br>";
+            this.popupLayer.showInfo(ht,obj.coordinate);
+        },
+        addMarkerCallback(e) {
+            this.addMarkerInfo = {
 				name: '',
 				location: e.coordinate,
 				note: ''
 			},
 			this.addMarkerDialogVisible = true;
-		},
-		removeMarkerCallback(obj) {
-			console.info(obj);
-			this.axios.get("/api/marker/remove-marker?markerId="+obj.data.marker.values_.id)
+        },
+        removeMarkerCallback(obj) {
+            var id = obj.data.feature.getId();
+            this.axios.get("/api/marker/remove-marker?id="+id)
 				.then(res=>{
-					this.vectorLayer.getSource().removeFeature(obj.data.marker);
-					this.markers.splice(this.markers.findIndex(item => item.id === obj.data.marker.values_.id), 1)
+                    this.markerLayers.marker.removeMarker(id);
+                    this.rawMarkers = this.rawMarkers.filter(item=>item.props.id !== id);
 				})
 				.catch(err=>{
-					console.info(err);
 					this.$message.error(err.response.data.message);
 				})
-			
-		},
-		addMarkerDialog() {
-			this.addMarkerDialogVisible = false;
+
+        },
+        addMarkerDialog() {
+            this.addMarkerDialogVisible = false;
 			let data = new URLSearchParams();
             data.append("name",this.addMarkerInfo.name);
             data.append("location",JSON.stringify(this.addMarkerInfo.location));
             data.append("note",this.addMarkerInfo.note);
-            data.append("mapId",this.$route.query.id);
 			var that = this;
 			this.axios.post("/api/marker/add-marker",data)
-				.then(function(res) {
-					that.addMarkerInfo.markerId = res.data.id;
-					that.addMarker(that.addMarkerInfo.location[0],that.addMarkerInfo.location[1],that.addMarkerInfo);
-					that.markers.push({
-						name: that.addMarkerInfo.name,
-						location: that.addMarkerInfo.location,
-						username: that.$store.getters.get_username,
-						note: that.addMarkerInfo.note
-					});
+				.then(res=> {
+                    var featureData = {
+                        name: this.addMarkerInfo.name,
+                        location: this.addMarkerInfo.location,
+                        note: this.addMarkerInfo.note,
+                        username: that.$store.getters.get_username,
+                        markerId: res.data.id,
+                        type: "marker"
+                    }
+                    var props = {
+                        name: this.addMarkerInfo.name,
+                        id: res.data.id,
+                        location: this.addMarkerInfo.location
+                    }
+                    this.rawMarkers.push({featureData: featureData,props: props});
+					this.markerLayers.marker.addMarker(this.addMarkerInfo.location,featureData,props,"marker","/static/img/marker.png");
 				})
 				.catch(function(err) {
 					that.$message.error(err.response.data.message);
 				})
-		},
-		addMarker(x, y, data) {
-			var marker = new Feature({
-				geometry: new Point([x, y]),
-				name: data.name,
-				username: data.username,
-				note: data.note,
-				type: 'marker',
-				id: data.markerId
-			});
-			var iconStyle = new Style({
-				image: new Icon({
-					anchor: [0.5, 1],
-					crossOrigin: 'anonymous',
-					src: "/static/img/marker.png"
-				}),
-				text: new Text({
-					text:  data.name
-				})
-			});
-			marker.setStyle(iconStyle);
-			this.vectorLayer.getSource().addFeature(marker);
-		},
-		searchCallback(e){
-			var name = e.data.name;
-			var rename = e.data.rename;
-			var ht = 
-				"<span>按"+rename+"查找</span></br>"+
-				"<input id='search-input'/></br>"+
-				"<button id='search-button-submit'>查找</button>";
-			this.showPopup(ht,e.coordinate);
-			var button = document.getElementById('search-button-submit');
-			var input = document.getElementById('search-input');
-			var that = this;
-			button.onclick = function() {
-				console.info(input.value);
-				var features = that.searchByFeature(name,input.value);
-				if(features.length == 0) {
-					that.$message.info("不存在查找对象");
-				} else {
-					that.delightFeature();
-					features.forEach((feature)=>{
-						that.highlightFeature(feature);
-					})
-				}
-			}
-		},
-		searchByFeature(name,re) {
-			var res = [];
-			this.source.forEachFeature((feature)=>{
-				if(String(feature.values_[name]) === String(re)) {
-					res.push(feature);
-				}
-			})
-			return res;
-		},
-		searchByGml(data) {
-			var url = data.url;
-			var coordinates = data.coordinates;
-			var re = data.re;
-			var layer = data.layer;
-			var name = data.name;
-			var filter =
-				'<Filter xmlns="http://www.opengis.net/ogc" xmlns:gml="http://www.opengis.net/gml">';
-				filter += '<And>';
-				filter += '<Intersects>';
-				filter += '<PropertyName>geom</PropertyName>';
-				filter += '<gml:Polygon>';
-				filter += '<gml:outerBoundaryIs>';
-				filter += '<gml:LinearRing>';
-				filter += '<gml:coordinates>' + coordinates + '</gml:coordinates>';
-				filter += '</gml:LinearRing>';
-				filter += '</gml:outerBoundaryIs>';
-				filter += '</gml:Polygon>';
-				filter += '</Intersects>';
-				filter += '<PropertyIsLike wildCard="*" singleChar="#" escapeChar="!">';
-				filter += '<PropertyName>'+name+'</PropertyName>';
-				filter += '<Literal>'+re+'</Literal>';
-				filter += '</PropertyIsLike>';
-				filter += '</And>';
-				filter += '</Filter>';
-			var urlString = url + '/ows';
-			var param = {
-				service: 'WFS',
-				version: '1.0.0',
-				request: 'GetFeature',
-				typeName: layer,
-				outputFormat: 'application/json',
-				filter: filter
-				};
-			var geojsonUrl = urlString + this.getParamString(param, urlString);
-			this.axios.get(geojsonUrl)
+        },
+        addMonitorCallback(e) {
+            console.info(e);
+            this.addMonitorInfo = {
+				name: '',
+				location: e.coordinate,
+                note: '',
+                lakeId: e.data.feature.values_.id
+			},
+			this.addMonitorDialogVisible = true;
+        },
+        removeMonitorCallback(obj) {
+            var id = obj.data.feature.getId();
+            this.axios.get("/api/monitor/remove-monitor?id="+id)
 				.then(res=>{
-					console.info(res);
+                    this.markerLayers.marker.removeMarker(id);
+                    this.rawMonitors = this.rawMonitors.filter(item => item.props.id !== id);
 				})
 				.catch(err=>{
-					console.info(err);
+					this.$message.error(err.response.data.message);
 				})
-		},
-		getParamString(obj, existingUrl, uppercase){
-			var params = [];
-			for (var i in obj) {
-			params.push(encodeURIComponent(uppercase ? i.toUpperCase() : i) + '=' + encodeURIComponent(obj[i]));
-			}
-			return ((!existingUrl || existingUrl.indexOf('?') === -1) ? '?' : '&') + params.join('&');   
-		},
-		elastic (t) {
-			return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
-		},
-		delightFeature() {
-			this.highlightFeatures.forEach((feature)=>{
-				mapStyle.delightFeature(feature);
-			})
-			this.highlightFeatures = [];
-		},
-		highlightFeature(feature) {
-			mapStyle.highlightFeature(feature);
-			this.highlightFeatures.push(feature);
-		},
-		jump(x, y) {
+        },
+        addMonitorDialog() {
+            this.addMonitorDialogVisible = false;
+			let data = new URLSearchParams();
+            data.append("name",this.addMonitorInfo.name);
+            data.append("locationX",this.addMonitorInfo.location[0]);
+            data.append("locationY",this.addMonitorInfo.location[1]);
+            data.append("note",this.addMonitorInfo.note);
+            data.append("lakeId",this.addMonitorInfo.lakeId);
+			var that = this;
+			this.axios.post("/api/monitor/add-monitor",data)
+				.then(res=> {
+                    var featureData = {
+                        name: this.addMarkerInfo.name,
+                        location: this.addMonitorInfo.location,
+                        note: this.addMonitorInfo.note,
+                        username: this.$store.getters.get_username,
+                        markerId: res.data.id,
+                        type: "monitor"
+                    }
+                    var props = {
+                        id: res.data.id,
+                        name: this.addMonitorInfo.name,
+                        location: this.addMonitorInfo.location
+                    }
+                    this.rawMonitors.push({featureData: featureData,props: props});
+					this.markerLayers.marker.addMarker(this.addMonitorInfo.location,featureData,props,"monitor","/static/img/monitor.png");
+				})
+				.catch(function(err) {
+					that.$message.error(err.response.data.message);
+				})
+        },
+        updateWaterQualityCallback(obj) {
+            this.updateWaterQuality(obj.data.feature.getId())
+        },
+        updateWaterQuality(id) {
+            this.addWaterQualityInfo = {
+                tn: 0,
+                tp: 0,
+                chlorophyll: 0,
+                o2: 0,
+                cod: 0,
+                bod: 0,
+                monitorTime: new Date(),
+                monitorId: id
+            }
+            this.addWaterQualityDialogVisible = true;
+        },
+        showWaterQualities(id) {
+            this.waterQualityVisible = true;
+            this.axios.get("/api/quality/get-qualities-by-id?monitorId="+id)
+            .then(res=>{
+                this.waterQualityById = res.data.qualities;
+            })
+            .catch(err=>{
+                console.info(err);
+            })
+        },
+        addWaterQualityDialog() {
+            let data = new URLSearchParams();
+            data.append("monitorId",this.addWaterQualityInfo.monitorId);
+            data.append("tn",this.addWaterQualityInfo.tn);
+            data.append("tp",this.addWaterQualityInfo.tp);
+            data.append("chlorophyll",this.addWaterQualityInfo.chlorophyll);
+            data.append("o2",this.addWaterQualityInfo.o2);
+            data.append("cod",this.addWaterQualityInfo.cod);
+            data.append("bod",this.addWaterQualityInfo.bod);
+            data.append("monitorTime",Date.parse(this.addWaterQualityInfo.monitorTime));
+			var that = this;
+            this.axios.post("/api/quality/add-quality",data)
+            .then(res=>{
+                this.$message.success("更新成功");
+                this.addWaterQualityDialogVisible = false;
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        initMarkers() {
+			var that = this;
+			this.axios
+            .get("/api/marker/get-markers")
+            .then(res=> {
+				var markers = res.data.markers;
+				for(let marker of markers) {
+                    marker.location = JSON.parse(marker.location);
+                    marker.type = "marker";
+                    var props = {
+                        name: marker.name,
+                        id: marker.id,
+                        location: marker.location
+                    }
+                    this.rawMarkers.push({featureData: marker,props: props});
+                    this.markerLayers.marker.addMarker(marker.location,marker,props,"marker","/static/img/marker.png");
+				}
+                
+            })
+            .catch(function(err) {
+                that.$message.error(err.response.data.message);
+            })
+        },
+        initMonitors() {
+            var that = this;
+			this.axios
+            .get("/api/monitor/get-monitors")
+            .then(res=> {
+				var monitors = res.data.monitors;
+				for(let monitor of monitors) {
+                    monitor.location = [monitor.locationX,monitor.locationY];
+                    monitor.type = "monitor";
+                    var props = {
+                        name: monitor.name,
+                        id: monitor.id,
+                        location: monitor.location
+                    }
+                    this.rawMonitors.push({featureData: monitor,props: props});
+                    this.markerLayers.marker.addMarker(monitor.location,monitor,props,"monitor","/static/img/monitor.png");
+				}
+            })
+            .catch(function(err) {
+                that.$message.error(err.response.data.message);
+            })
+        },
+        initLake() {
+            this.axios.get("/api/lake/get-lakes")
+            .then(res=>{
+                var lakes = res.data.lakes;
+                lakes.forEach(lake=>{
+                    lake.geo = JSON.parse(lake.geo);
+                    this.ploygonLayers.lake.addPloygon(lake.geo.coordinates,lake,{id:lake.id},"lake")
+                })
+                this.rawLakes = lakes;
+            }).catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        getWaterQualityStandard() {
+            this.axios.get("/api/water/water-quality-standard")
+            .then(res=>{
+                this.waterQualityStandard = res.data.standards;
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        jump(x, y) {
 			var that = this;
 			this.view.animate({
 				duration: 700,
 				easing: that.elastic,
 				center: [x,y]
 			});
-		}
-	}
-};
- 
+        },
+        elastic (t) {
+			return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
+        },
+        formatTime(row, column,date, index) {
+            if(date) {
+                var date = new Date(date);
+                var YY = date.getFullYear() + '-';
+                var MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+                var DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+                var hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+                var mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+                var ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+                return YY + MM + DD +" "+hh + mm + ss;
+            } else {
+                return "";
+            }
+            
+        },
+        qualityAnalyse() {
+            let data = new URLSearchParams();
+            let ids = [];
+            this.waterQualityById.forEach(item=>{
+                ids.push(item.id);
+            })
+            data.append("ids",JSON.stringify(ids));
+            this.axios.post("/api/water/quality-analyse",data)
+            .then(res=>{
+                var results = res.data.results;
+                results.forEach(result=>{
+                    let quality = this.waterQualityById.find(quality=>{return quality.id === result.id});
+                    this.$set(quality,"res",result);
+                })
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        getLevel(level) {
+            switch(level) {
+                case 1: {
+                    return "Ⅰ类";
+                }
+                case 2: {
+                    return "Ⅱ类";                    
+                }
+                case 3: {
+                    return "Ⅲ类";
+                }
+                case 4: {
+                    return "Ⅳ类";
+                }
+                case 5: {
+                    return "Ⅴ类";
+                }
+                default: {
+                    return "不合格";
+                }
+            }
+        },
+        judgeStandard(res) {
+            let count = 0;
+            if(res.tnLevel == -1) {
+                count++;
+            }
+            if(res.tpLevel == -1) {
+                count++;
+            }
+            if(res.chlorophyllLevel == -1) {
+                count++;
+            }
+            if(res.bodLevel == -1) {
+                count++;
+            }
+            if(res.codLevel == -1) {
+                count++;
+            }
+            if(res.o2Level == -1) {
+                count++;
+            }
+            if(count>=2) {
+                return false;
+            } else {
+                return true;
+            }
+        },
+        waterQualityPurify(qualityId) {
+            this.waterPurify = [];
+            this.waterPurifyVisible = true;
+            this.axios.get("/api/water/water-quality-purify?qualityId="+qualityId)
+            .then(res=>{
+                this.waterPurify = [res.data.purify];
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        }
+    },
+    mounted() {
+        this.view = Map.getViewByDemo();
+        this.map = Map.initMap([Map.getVECLayer(),Map.getCVALayer()],this.view);
+        this.contextMenu = Map.initContextMenu();
+        this.initEvent();
+        this.initContextMenu();
+        this.markerLayers.marker = new Map.MarkerLayer();
+        this.ploygonLayers.lake = new Map.PolygonLayer();
+        this.popupLayer = new Map.PopupLayer();
+        var marker = this.markerLayers.marker;
+        var lake = this.ploygonLayers.lake;
+        this.map.addLayer(marker.getLayer());
+        this.map.addLayer(lake.getLayer());
+        this.map.addOverlay(this.popupLayer.getOverLay());
+        this.initMarkers();
+        this.initMonitors();
+        this.initLake();
+    }
+}
 </script>
- 
+<style scoped>
+>>>.el-collapse-item__content {
+    padding-bottom:0px;
+}
+</style>
 <style>
 .map {
-	height:100%;
-	flex:10;
+    height:100%;
+    flex: 10;
 }
 .column {
-	flex:2;
+	flex:4;
 	display: flex;
 	flex-direction: column;
 	padding:10px;
-	background:#f7f8f9;
-}
-.list {
-	display: flex;
-	flex-direction: column;
-	overflow-y: auto;
-	flex: 1;
+    background:#f7f8f9;
+    overflow: auto;
 }
 .marker-item {
 	background:white;
