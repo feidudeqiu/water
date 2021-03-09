@@ -14,19 +14,19 @@
       element-loading-spinner="el-icon-loading"
       element-loading-background="rgba(255, 255, 255, 0.7)"
       class="form"
-      v-if="isFirststep">
+      v-show="isFirststep">
       <el-form-item label="初始问题:">
-        <el-input class="input1" v-model="form.question"></el-input>
+        <el-input class="input1" v-model="form.question" readonly></el-input>
       </el-form-item>
       <el-form-item label="提示信息:">
-        <el-input class="input2"  v-model="form.tip"></el-input>
+        <el-input class="input2"  v-model="form.tip" readonly></el-input>
       </el-form-item>
       <el-form-item label="答案:">
         <el-input class="input2" type="textarea" v-model="answer"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button class="button" plain  @click="next">下一步 <i class="el-icon-thumb"></i></el-button>
-        <el-button class="button" plain  @click="back()">重置 <i class="el-icon-delete"></i></el-button>
+        <el-button class="button" type="primary"  @click="next">下一步 <i class="el-icon-thumb"></i></el-button>
+        <el-button class="button" plain  @click="back()">重置答案 <i class="el-icon-delete"></i></el-button>
       </el-form-item>
     </el-form>
     <el-form :model="ruleForm"
@@ -35,16 +35,20 @@
              ref="ruleForm"
              label-width="100px"
              class="form"
-             v-if="!isFirststep">
+             v-loading.fullscreen.lock="fullscreenLoadingsec"
+             element-loading-text="验证中"
+             element-loading-spinner="el-icon-loading"
+             element-loading-background="rgba(255, 255, 255, 0.7)"
+             v-show="!isFirststep">
       <el-form-item label="密码" prop="pass">
-        <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+        <el-input show-password v-model="ruleForm.pass" ></el-input>
       </el-form-item>
       <el-form-item label="确认密码" prop="checkPass">
-        <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+        <el-input show-password v-model="ruleForm.checkPass" ></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
-        <el-button @click="resetForm('ruleForm')">重置</el-button>
+        <el-button type="primary" @click="submitForm('ruleForm')">提交<i class="el-icon-thumb"></i></el-button>
+        <el-button @click="resetForm('ruleForm')">重置<i class="el-icon-delete"></i></el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -54,7 +58,7 @@
 export default {
   name: "UcChangepwd",
   data() {
-    var validatePass = (rule, value, callback) => {
+    let validatePass = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请输入密码'));
       } else {
@@ -64,7 +68,7 @@ export default {
         callback();
       }
     };
-    var validatePass2 = (rule, value, callback) => {
+    let validatePass2 = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请再次输入密码'));
       } else if (value !== this.ruleForm.pass) {
@@ -77,6 +81,8 @@ export default {
       active: 0,
       isFirststep: true,
       answer: '',
+      fullscreenLoading: false,
+      fullscreenLoadingsec: false,
       form: {
         question:'',
         tip: '',
@@ -97,12 +103,26 @@ export default {
     }
   },
   created() {
-
+    this.axios.get("/api/user/get-user")
+    .then(res =>{
+      this.form.question = res.data.user.question
+      this.form.tip = res.data.user.tip
+      this.form.key = res.data.user.answer
+    })
   },
   methods: {
     next() {
-      this.active++;
-      this.isFirststep = !this.isFirststep;
+      this.fullscreenLoading = true
+      setTimeout(()=>{
+        if (this.answer === this.form.key){
+          this.$message.success("验证成功")
+          this.active++
+          this.isFirststep = !this.isFirststep
+        }else {
+          this.$message.error("答案错误，验证失败")
+        }
+        this.fullscreenLoading = false
+      },1000)
     },
     back(){
       this.answer = '';
@@ -110,10 +130,26 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.$message.success('成功');
-          this.active = 3;
+          this.fullscreenLoadingsec = true
+          setTimeout(() =>{
+            let data = new URLSearchParams()
+            data.append('username', this.$store.getters.get_username)
+            data.append('password', this.ruleForm.pass)
+            this.axios.post("/api/user/repwd-user",data)
+            .then(res =>{
+              this.fullscreenLoadingsec = false
+              this.$message.success("修改成功")
+              this.active = 3
+            })
+            .catch(err =>{
+              this.fullscreenLoadingsec = false
+              this.$message.error("失败")
+            })
+          },1000)
+
+
         } else {
-          console.log('error submit!!');
+          this.$message.error("error")
           return false;
         }
       });
