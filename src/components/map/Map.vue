@@ -1,22 +1,95 @@
 <template>
     <div>
-        <div style="height:100%;width:100%;display:flex;">
+        <div id="main" style="height:100%;width:100%;display:flex;">
             <div id="map" ref="rootmap" class="map"></div>
-            <div class="column">
-                <el-tabs v-model="tab" type="card" >
+            <div id="column" class="column">
+                <el-tabs style="display:flex;flex-direction:column;" v-model="tab" type="card" >
                     <el-tab-pane label="湖泊" name="lake">
-                        <el-collapse accordion>
-                            <el-collapse-item v-for="lake in lakes" v-bind:key="lake.lakeInfo.id">
+                        <el-collapse v-model="currentLake" accordion v-on:change="lakeChange">
+                            <el-collapse-item :name="lake.lakeInfo.id" v-for="lake in lakes" v-bind:key="lake.lakeInfo.id">
                                 <template slot="title">
                                     <span class="text-h4 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
                                 </template>
-                                <div>
+                                <div style="display:flex;flex-wrap:wrap;">
                                     <div class="marker-item" style="margin-top:0px;"  v-for="monitor in lake.monitors" v-bind:key="monitor.props.id">
                                         <div class="marker-item-info" style="margin-top:0px;cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
-                                            <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                            <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:5px;" >
                                             <span class="text-normal text-h6">{{monitor.props.name}}</span>
                                         </div>
                                     </div>
+                                </div>
+                                <div style="display:flex;justify-content:center;">
+                                    <el-collapse style="width:90%;" accordion v-on:change="qualityChange">
+                                        <el-collapse-item :name="quality.monitorTime" v-for="quality in lake.qualities" v-bind:key="quality.monitorTime">
+                                            <template slot="title">
+                                                 <i style="font-size:16px;" class="el-icon-timer"></i>
+                                                <span class="text-h6 text-secondary">{{formatTimeByStamp(quality.monitorTime)}}</span>
+                                            </template>
+                                            <div v-if="waterAnalyse[lake.lakeInfo.id+''+quality.monitorTime]">
+                                                <div style="height:300px;" :id="lake.lakeInfo.id+''+quality.monitorTime">
+                                                    
+                                                </div>
+                                                <div v-if="!qualityJudge(lake.lakeInfo.id+''+quality.monitorTime)">
+                                                    <div slot="lake.lakeInfo.id+''+quality.monitorTime" slot-scope="id">
+                                                        <span>{{id}}</span>
+                                                    </div>
+                                                    <div v-if="!waterPurify[lake.lakeInfo.id+''+quality.monitorTime]">
+                                                            <span class="text-secondary">获取配方中</span><i class="el-icon-loading text-secondary"></i>
+                                                    </div>
+                                                    <div v-else style="display:flex; flex-wrap:wrap;">
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_TN</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfTn}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_TP</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfTp}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_DO</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfDo}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_COD</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfCod}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_BOD</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfBod}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WF_CH</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfCh}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_TN</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdTn}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_TP</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdTp}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_DO</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdDo}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_COD</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdCod}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_BOD</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdBod}}</div>
+                                                        </div>
+                                                        <div class="purify-item">
+                                                            <div class="purify-title">WD_CH</div>
+                                                            <div class="purify-value">{{waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdCh}}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </el-collapse-item>
+                                    </el-collapse>
                                 </div>
                             </el-collapse-item>
                         </el-collapse>
@@ -43,30 +116,34 @@
                         </div>
                     </el-tab-pane>
                     <el-tab-pane label="检测点" name="monitor">
-                        <el-input size="mini" placeholder="请输入搜索内容" prefix-icon="el-icon-search" v-model="markerInput"></el-input>
-                        <div class="marker-item" v-for="monitor in monitors" v-bind:key="monitor.props.id">
-                            <div class="marker-item-info" style="cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
-                                <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
-                                <span class="text-normal text-h6">{{monitor.props.name}}</span>
-                            </div>
-                            <div class="marker-item-info">
-                                <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-                                <span class="text-normal text-h6">{{monitor.featureData.username}}</span>
-                            </div>
-                            <div  class="marker-item-info">
-                                <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-                                <span class="text-normal text-h6">{{'('+parseFloat(monitor.props.location[0]).toFixed(5)+','+parseFloat(monitor.props.location[1]).toFixed(5)+')'}}</span>
-                            </div>
-                            <div  class="marker-item-info">
-                                <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-                                <span class="text-normal text-h6">{{monitor.featureData.note}}</span>
-                            </div>
-                            <div class="marker-item-info" >
-                                 <i class="el-icon-setting" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
-                                <img src="~static/img/table.png" title="水质数据" @click="showWaterQualities(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
-                                <img src="~static/img/update.png" title="更新水质数据" @click="updateWaterQuality(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
+                        <div style="display:flex;height:100%;flex-direction:column;">
+                            <el-input size="mini" placeholder="请输入搜索内容" prefix-icon="el-icon-search" v-model="monitorInput"></el-input>
+                            <div style="overflow:auto;">
+                                <div class="marker-item" v-for="monitor in monitors" v-bind:key="monitor.props.id">
+                                    <div class="marker-item-info" style="cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
+                                        <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                        <span class="text-normal text-h6">{{monitor.props.name}}</span>
+                                    </div>
+                                    <div class="marker-item-info">
+                                        <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{monitor.featureData.username}}</span>
+                                    </div>
+                                    <div  class="marker-item-info">
+                                        <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{'('+parseFloat(monitor.props.location[0]).toFixed(5)+','+parseFloat(monitor.props.location[1]).toFixed(5)+')'}}</span>
+                                    </div>
+                                    <div  class="marker-item-info">
+                                        <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{monitor.featureData.note}}</span>
+                                    </div>
+                                    <div class="marker-item-info" >
+                                        <i class="el-icon-setting" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <img src="~static/img/table.png" title="水质数据" @click="showWaterQualities(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        
                     </el-tab-pane>
                     <el-tab-pane label="标准" name="standard">
                         <el-card >
@@ -109,29 +186,35 @@
             </div>
         </el-dialog>
         <el-dialog title="添加水质检测数据" :visible.sync="addWaterQualityDialogVisible">
-            <el-form size="mini" label-width="100px" :model="addWaterQualityInfo">
-                <el-form-item label="TN">
-                    <el-input type="number" v-model="addWaterQualityInfo.tn" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="TP">
-                    <el-input type="number" v-model="addWaterQualityInfo.tp" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="叶绿素">
-                    <el-input  type="number" v-model="addWaterQualityInfo.chlorophyll" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="DO">
-                    <el-input type="number" v-model="addWaterQualityInfo.o2" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="COD">
-                    <el-input type="number" v-model="addWaterQualityInfo.cod" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="BOD">
-                    <el-input type="number" v-model="addWaterQualityInfo.bod" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="检测时间">
-                    <el-date-picker v-model="addWaterQualityInfo.monitorTime" type="datetime"></el-date-picker>
-                </el-form-item>
-            </el-form>
+            <div v-for="qualityInfo in addWaterQualityInfo.monitors" v-bind:key="qualityInfo.monitorId">
+                <span>{{qualityInfo.name}}</span>
+                <el-form :inline="true"  size="mini" label-width="100px" :model="addWaterQualityInfo">
+                    
+                    <el-form-item label="TN">
+                        <el-input type="number" v-model="qualityInfo.tn" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="TP">
+                        <el-input type="number" v-model="qualityInfo.tp" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="叶绿素">
+                        <el-input  type="number" v-model="qualityInfo.chlorophyll" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="DO">
+                        <el-input type="number" v-model="qualityInfo.o2" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="COD">
+                        <el-input type="number" v-model="qualityInfo.cod" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="BOD">
+                        <el-input type="number" v-model="qualityInfo.bod" autocomplete="off"></el-input>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <div>
+                <span style="margin-right:10px;">检测时间</span>
+                <el-date-picker size="mini" v-model="addWaterQualityInfo.monitorTime" type="datetime"></el-date-picker>
+            </div>
+            
             <div slot="footer" class="dialog-footer">
                 <el-button @click="addWaterQualityDialogVisible = false">取消</el-button>
                 <el-button type="primary" @click="addWaterQualityDialog()">更新</el-button>
@@ -145,29 +228,7 @@
                 <el-table-column property="chlorophyll" label="叶绿素"></el-table-column>
                 <el-table-column property="o2" label="DO"></el-table-column>
                 <el-table-column property="cod" label="COD"></el-table-column>
-                <el-table-column property="bod" label="BOD"></el-table-column>   
-                <el-table-column  width="200">
-                    <template slot="header" slot-scope="scope">
-                        <el-button size="mini" @click="qualityAnalyse()">水质评价</el-button>
-                    </template>
-                    <template slot-scope="scope">
-                        <el-dropdown v-if="scope.row.res !== undefined">
-                            <span class="el-dropdown-link">
-                                评价结果<i class="el-icon-arrow-down el-icon--right"></i>
-                            </span>
-                            <el-dropdown-menu slot="dropdown">
-                                <el-dropdown-item>{{"TN("+getLevel(scope.row.res.tnLevel)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"TP("+getLevel(scope.row.res.tpLevel)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"叶绿素("+getLevel(scope.row.res.chlorophyllLevel)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"DO("+getLevel(scope.row.res.o2Level)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"COD("+getLevel(scope.row.res.codLevel)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"BOD("+getLevel(scope.row.res.bodLevel)+")"}}</el-dropdown-item>
-                                <el-dropdown-item>{{"整体("+(judgeStandard(scope.row.res)?"合格":"不合格")+")"}}</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </el-dropdown>
-                        <el-button @click="waterQualityPurify(scope.row.res.id)" size="mini" v-if="scope.row.res !== undefined && (!judgeStandard(scope.row.res))">获取配方</el-button>
-                    </template>
-                </el-table-column>                 
+                <el-table-column property="bod" label="BOD"></el-table-column>                  
             </el-table>
         </el-dialog>
 
@@ -181,30 +242,13 @@
                 <el-table-column property="level5" label="Ⅴ类"></el-table-column>         
             </el-table>
         </el-dialog>
-
-        <el-dialog title="水体配方" :visible.sync="waterPurifyVisible">
-            <el-table :data="waterPurify">
-                <el-table-column property="wdBod" label="wdBod"></el-table-column>
-                <el-table-column property="wdCh" label="wdCh"></el-table-column>
-                <el-table-column property="wdCod" label="wdCod"></el-table-column>
-                <el-table-column property="wdDo" label="wdDo"></el-table-column>
-                <el-table-column property="wdTn" label="wdTn"></el-table-column>
-                <el-table-column property="wdTp" label="wdTp"></el-table-column>
-                <el-table-column property="wfBod" label="wfBod"></el-table-column>
-                <el-table-column property="wfCh" label="wfCh"></el-table-column>
-                <el-table-column property="wfCod" label="wfCod"></el-table-column>
-                <el-table-column property="wfDo" label="wfDo"></el-table-column>
-                <el-table-column property="wfFp" label="wfFp"></el-table-column>
-                <el-table-column property="wfTn" label="wfTn"></el-table-column>
-            </el-table>
-        </el-dialog>
-        
   </div>
 </template>
 
 <script>
 import Map from './js/map'
 import domtoimage from 'dom-to-image';
+import echarts from 'echarts'
 export default {
     name: 'Map',
 	data(){
@@ -242,27 +286,25 @@ export default {
 
             ],
             tab: 'lake',
+            currentLake: '',
             markerInput: "",
             monitorInput: "",
             waterQualityVisible: false,
             waterQualityById: [],
+            waterQualityByLakeId:{},
             addWaterQualityDialogVisible: false,
-            addWaterQualityInfo: {
-                tn: 0,
-                tp: 0,
-                chlorophyll: 0,
-                o2: 0,
-                cod: 0,
-                bod: 0,
-                monitorTime: null,
-                monitorId: 0
-            },
+            addWaterQualityInfo: [],
             waterQualityStandardVisible: false,
-            waterQualityStandard: [
+            waterQualityStandard: [],
+            waterPurify: {
 
-            ],
-            waterPurifyVisible: false,
-            waterPurify: []
+            },
+            waterAnalyse: {
+
+            },
+            echartMap: {
+
+            }
         }
     },
     computed: {
@@ -276,17 +318,30 @@ export default {
                 !this.monitorInput || monitor.featureData.username.includes(this.monitorInput) || monitor.props.name.includes(this.monitorInput) || monitor.featureData.note.includes(this.monitorInput) 
             )
         },
-        lakes() {
-            var lakes = [];
-            for(let i = 0; i < this.rawLakes.length; i++) {
-                var rawLake = this.rawLakes[i];
-                var lake = {lakeInfo: rawLake};
-                lake.monitors = this.rawMonitors.filter(monitor=>{
-                    return monitor.featureData.lakeId === rawLake.id;
-                })
-                lakes.push(lake);
-            }
-            return lakes;
+        lakes ({ rawLakes, rawMonitors,waterQualityByLakeId }) {
+            return rawLakes.map((rawLake) => {
+                let qualities = waterQualityByLakeId[rawLake.id];
+                if(qualities===undefined) {
+                    qualities = [];
+                } else {
+                    const groups = {};        
+                    qualities.forEach(item=> { 
+                        const group = item.monitorTime;
+                        groups[group] = groups[group] || [];
+                        groups[group].push(item);
+                    });
+                    var temp = [];
+                    for(let key in groups) {
+                        temp.push({monitorTime:key,qualities:groups[key]});
+                    }
+                    qualities = temp;
+                }
+                return {
+                lakeInfo: rawLake,
+                monitors: rawMonitors.filter((monitor) => monitor.featureData.lakeId === rawLake.id),
+                qualities: qualities
+                }
+            })
         }
     },
     methods: {
@@ -308,7 +363,6 @@ export default {
             this.contextMenu.clear();
             this.contextMenu.extend(contextmenuItems);
             this.contextMenu.on('open', evt=> {
-                var feature =	this.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
                 var removeMarkerItem = {
                     text: '删除标记',
                     icon: '/static/img/marker.png',
@@ -335,38 +389,52 @@ export default {
 					icon: '/static/img/monitor.png',
 					callback: this.addMonitorCallback
                 }
-				if (feature && (feature.get('type') === 'marker')) {
-					this.contextMenu.clear();
-					removeMarkerItem.data = { feature: feature,type: "marker" };
-					this.contextMenu.push(removeMarkerItem);
-				} else if (feature && (feature.get('type') === 'monitor')) {
-                    this.contextMenu.clear();
-                    removeMonitorItem.data = { feature: feature,type: "monitor" };
-                    updateWaterQuality.data = { feature: feature};
-                    this.contextMenu.push(updateWaterQuality);
-                    this.contextMenu.push(removeMonitorItem);
-				} else if (feature && (feature.get('type') === 'lake')) {
+                var showWaterQualities = {
+                    text: "获取水质信息",
+                    icon: '/static/img/table.png',
+                    callback: this.showWaterQualitiesCallback
+                }
+                let f = null;
+                this.map.forEachFeatureAtPixel(evt.pixel, feature=>{
+                    if (feature && (feature.get('type') === 'marker')) {
+                        this.contextMenu.clear();
+                        removeMarkerItem.data = { feature: feature,type: "marker" };
+                        this.contextMenu.push(removeMarkerItem);
+                    } else if (feature && (feature.get('type') === 'monitor')) {
+                        this.contextMenu.clear();
+                        removeMonitorItem.data = { feature: feature,type: "monitor" };
+                        showWaterQualities.data = {feature: feature};
+                        this.contextMenu.push(removeMonitorItem);
+                        this.contextMenu.push(showWaterQualities);
+                    } else if (feature && (feature.get('type') === 'lake')) {
+                        this.contextMenu.clear();
+                        this.contextMenu.extend(contextmenuItems);
+                        showLakeInfo.data = { feature: feature};
+                        addMonitorItem.data = {feature: feature};
+                        updateWaterQuality.data = { feature: feature};
+                        this.contextMenu.push(showLakeInfo);
+                        this.contextMenu.push(addMonitorItem);
+                        this.contextMenu.push(updateWaterQuality);
+                    } 
+                    f = feature;
+                });
+                if(!f) {
                     this.contextMenu.clear();
                     this.contextMenu.extend(contextmenuItems);
-                    showLakeInfo.data = { feature: feature};
-                    addMonitorItem.data = {feature: feature};
-                    this.contextMenu.push(showLakeInfo);
-                    this.contextMenu.push(addMonitorItem);
-                } else {
-                    this.contextMenu.clear();
-					this.contextMenu.extend(contextmenuItems);
                 }
 			});
         },
         initEvent() {
             var that = this;
 			this.map.on('pointermove',function(evt) {
-				var feature =	that.map.forEachFeatureAtPixel(evt.pixel, ft => ft);
-				if (feature && (feature.get('type') === 'marker' || feature.get('type') === 'monitor')) {
-					that.map.getTargetElement().style.cursor = 'pointer';
-				} else {
-					that.map.getTargetElement().style.cursor = '';
-				}
+				var feature =	that.map.forEachFeatureAtPixel(evt.pixel, feature => {
+                   if (feature && (feature.get('type') === 'marker' || feature.get('type') === 'monitor')) {
+                        that.map.getTargetElement().style.cursor = 'pointer';
+                    } else {
+                        that.map.getTargetElement().style.cursor = '';
+                    }
+                });
+				
 			});
         },
         saveAsPngCallback() {
@@ -443,7 +511,6 @@ export default {
 				})
         },
         addMonitorCallback(e) {
-            console.info(e);
             this.addMonitorInfo = {
 				name: '',
 				location: e.coordinate,
@@ -480,7 +547,8 @@ export default {
                         note: this.addMonitorInfo.note,
                         username: this.$store.getters.get_username,
                         markerId: res.data.id,
-                        type: "monitor"
+                        type: "monitor",
+                        lakeId: this.addMonitorInfo.lakeId
                     }
                     var props = {
                         id: res.data.id,
@@ -498,17 +566,27 @@ export default {
             this.updateWaterQuality(obj.data.feature.getId())
         },
         updateWaterQuality(id) {
-            this.addWaterQualityInfo = {
-                tn: 0,
-                tp: 0,
-                chlorophyll: 0,
-                o2: 0,
-                cod: 0,
-                bod: 0,
-                monitorTime: new Date(),
-                monitorId: id
-            }
+            var monitors = this.rawMonitors.filter(monitor=>{
+                    return monitor.featureData.lakeId === id;
+            })
+            this.addWaterQualityInfo = {monitors:[],monitorTime:new Date()};
+            monitors.forEach(monitor=>{
+                let item = {
+                    tn: 0,
+                    tp: 0,
+                    chlorophyll: 0,
+                    o2: 0,
+                    cod: 0,
+                    bod: 0,
+                    monitorId: monitor.props.id,
+                    name: monitor.props.name
+                }
+                this.addWaterQualityInfo.monitors.push(item);
+            })
             this.addWaterQualityDialogVisible = true;
+        },
+        showWaterQualitiesCallback(obj) {
+            this.showWaterQualities(obj.data.feature.getId());
         },
         showWaterQualities(id) {
             this.waterQualityVisible = true;
@@ -517,18 +595,12 @@ export default {
                 this.waterQualityById = res.data.qualities;
             })
             .catch(err=>{
-                console.info(err);
+                this.$message.error(err.response.data.message);
             })
         },
         addWaterQualityDialog() {
             let data = new URLSearchParams();
-            data.append("monitorId",this.addWaterQualityInfo.monitorId);
-            data.append("tn",this.addWaterQualityInfo.tn);
-            data.append("tp",this.addWaterQualityInfo.tp);
-            data.append("chlorophyll",this.addWaterQualityInfo.chlorophyll);
-            data.append("o2",this.addWaterQualityInfo.o2);
-            data.append("cod",this.addWaterQualityInfo.cod);
-            data.append("bod",this.addWaterQualityInfo.bod);
+            data.append("qualities",JSON.stringify(this.addWaterQualityInfo.monitors));
             data.append("monitorTime",Date.parse(this.addWaterQualityInfo.monitorTime));
 			var that = this;
             this.axios.post("/api/quality/add-quality",data)
@@ -618,98 +690,157 @@ export default {
         elastic (t) {
 			return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1;
         },
+        formatTimeByStamp(stamp) {
+            var date = new Date(parseInt(stamp));
+            var YY = date.getFullYear() + '-';
+            var MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+            var DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+            var hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+            var mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+            var ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+            return YY + MM + DD +" "+hh + mm + ss;
+        },
         formatTime(row, column,date, index) {
             if(date) {
-                var date = new Date(date);
-                var YY = date.getFullYear() + '-';
-                var MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
-                var DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
-                var hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
-                var mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
-                var ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
-                return YY + MM + DD +" "+hh + mm + ss;
+                return this.formatTimeByStamp(date);
             } else {
                 return "";
             }
             
         },
-        qualityAnalyse() {
-            let data = new URLSearchParams();
-            let ids = [];
-            this.waterQualityById.forEach(item=>{
-                ids.push(item.id);
-            })
-            data.append("ids",JSON.stringify(ids));
-            this.axios.post("/api/water/quality-analyse",data)
+        getQualityByLakeId(lakeId) {
+            this.axios.get("/api/quality/get-qualities-by-lake-id?lakeId="+lakeId)
             .then(res=>{
-                var results = res.data.results;
-                results.forEach(result=>{
-                    let quality = this.waterQualityById.find(quality=>{return quality.id === result.id});
-                    this.$set(quality,"res",result);
-                })
+                this.$set(this.waterQualityByLakeId,lakeId,res.data.qualities);
             })
             .catch(err=>{
                 this.$message.error(err.response.data.message);
             })
         },
-        getLevel(level) {
-            switch(level) {
-                case 1: {
-                    return "Ⅰ类";
-                }
-                case 2: {
-                    return "Ⅱ类";                    
-                }
-                case 3: {
-                    return "Ⅲ类";
-                }
-                case 4: {
-                    return "Ⅳ类";
-                }
-                case 5: {
-                    return "Ⅴ类";
-                }
-                default: {
-                    return "不合格";
-                }
+        lakeChange(e) {
+            if(this.waterQualityByLakeId[e]===undefined) {
+                this.getQualityByLakeId(e);
             }
         },
-        judgeStandard(res) {
+        //false 表示水质不合格 true 表示水质合格
+        qualityJudge(id) {
+            let q = this.waterAnalyse[id];
             let count = 0;
-            if(res.tnLevel == -1) {
-                count++;
-            }
-            if(res.tpLevel == -1) {
-                count++;
-            }
-            if(res.chlorophyllLevel == -1) {
-                count++;
-            }
-            if(res.bodLevel == -1) {
-                count++;
-            }
-            if(res.codLevel == -1) {
-                count++;
-            }
-            if(res.o2Level == -1) {
-                count++;
-            }
-            if(count>=2) {
+            if(q.tnLevel == -1) count++;
+            if(q.tpLevel == -1) count++;
+            if(q.codLevel == -1) count++;
+            if(q.o2Level == -1) count++;
+            if(q.bodLevel == -1) count++;
+            if(q.chlorophyllLevel == -1) count++;
+            if(count>=1) {
+                this.waterQualityPurify(id);
                 return false;
+                
             } else {
                 return true;
             }
         },
-        waterQualityPurify(qualityId) {
-            this.waterPurify = [];
-            this.waterPurifyVisible = true;
-            this.axios.get("/api/water/water-quality-purify?qualityId="+qualityId)
-            .then(res=>{
-                this.waterPurify = [res.data.purify];
-            })
-            .catch(err=>{
-                this.$message.error(err.response.data.message);
-            })
+        qualityChange(e) {
+            let data = new URLSearchParams();
+            let ids = [];
+            let lake = this.lakes.find(lake=>lake.lakeInfo.id == this.currentLake);
+            let id = this.currentLake+""+e;
+            if(this.waterAnalyse[id]) {
+                this.echartMap[id].echart.setOption(option);
+                this.echartMap[id].echart.resize();
+            }
+            if(lake) {
+                let qualities = lake.qualities.find(quality=>
+                    quality.monitorTime == e)
+                if(qualities) {
+                    qualities.qualities.forEach(item=>{
+                        ids.push(item.id);
+                    })
+                    data.append("ids",JSON.stringify(ids));
+                    this.axios.post("/api/water/quality-analyse",data)
+                    .then(res=>{
+                        const q = res.data.result;
+                        this.$set(this.waterAnalyse,id,res.data.result);
+                        this.$nextTick(()=>{
+                            let echart = echarts.init(document.getElementById(id));
+                            var option = {
+                                grid: [{
+                                    left: '15%',
+                                    bottom: '10%',
+                                    top: '3%',
+                                    right: '5%'
+                                }],
+                                tooltip: {},
+                                xAxis: {
+                                    type : 'value',
+                                    max:5,
+                                    min:0,
+                                    minInterval: 1,
+                                    interval:1
+                                },
+                                yAxis: {
+                                    type : 'category',
+                                    data: ["TN","TP","DO","叶绿素","BOD","COD"]
+                                },
+                                series: [{
+                                    name: '水质级别',
+                                    type: 'bar',
+                                    barWidth: '60%',
+                                    data: [
+                                        parseFloat(q.tnLevel).toFixed(2),
+                                        parseFloat(q.tpLevel).toFixed(2),
+                                        parseFloat(q.o2Level).toFixed(2),
+                                        parseFloat(q.chlorophyllLevel).toFixed(2),
+                                        parseFloat(q.bodLevel).toFixed(2),
+                                        parseFloat(q.codLevel).toFixed(2)
+                                    ],
+                                    label: {
+                                        normal: {
+                                            show: true,
+                                            position: 'insideRight',
+                                            formatter:function(params) {
+                                                if(params.data<=0) {
+                                                    return "";
+                                                } else if(params.data < 1) {
+                                                    return "Ⅰ类";
+                                                } else if(params.data < 2) {
+                                                    return "Ⅱ类";
+                                                } else if(params.data < 3) {
+                                                    return "Ⅲ类";
+                                                } else if(params.data < 4) {
+                                                    return "Ⅳ类";
+                                                } else if (params.data < 5) {
+                                                    return "Ⅴ类";
+                                                } else {
+                                                    return "";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            };
+                            echart.setOption(option);
+                            this.echartMap[id] = {echart:echart,option:option};
+                            window.addEventListener("resize", () => { echart.setOption(option);echart.resize();});
+                        })
+                    })
+                    .catch(err=>{
+                        this.$message.error(err.response.data.message);
+                    })
+                }
+            }
+            
+        },
+        waterQualityPurify(id) {
+            if(!this.waterPurify[id]) {
+                this.axios.post("/api/water/water-purify")
+                .then(res=> {
+                    this.$set(this.waterPurify,id,res.data.purify);
+                })
+                .catch(err=> {
+                    this.$message.error(err.response.data.message);
+                }) 
+            }
         }
     },
     mounted() {
@@ -726,6 +857,13 @@ export default {
         this.map.addLayer(marker.getLayer());
         this.map.addLayer(lake.getLayer());
         this.map.addOverlay(this.popupLayer.getOverLay());
+
+        var column = document.getElementById("column");
+        const resizeObserver = new ResizeObserver(entries => {
+            column.style.height = document.body.clientHeight-120+"px";
+        });
+        resizeObserver.observe(document.body);
+
         this.initMarkers();
         this.initMonitors();
         this.initLake();
@@ -748,7 +886,7 @@ export default {
 	flex-direction: column;
 	padding:10px;
     background:#f7f8f9;
-    overflow: auto;
+    overflow-y: auto;
 }
 .marker-item {
 	background:white;
@@ -764,6 +902,25 @@ export default {
 	display:flex;
 	flex-direction: row;
 	align-items:center;
+}
+.purify-item {
+    border: 1px solid gray;
+    width: 48%;
+    display:flex;
+}
+.purify-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #303133;
+    width:70px;
+    border-right: 1px solid gray;
+}
+.purify-value {
+    flex:1;
+    font-size: 14px;
+    font-weight: 700;
+    color: #606266;
+    text-align:center;
 }
   /*隐藏ol的一些自带元素*/
 .ol-attribution,.ol-zoom { display: none;}

@@ -11,7 +11,6 @@ Vue.use(ElementUI);
 Vue.prototype.axios = axios
 Vue.config.productionTip = false
 Vue.prototype.$message = ElementUI.Message;
-
 // 路由切换操作
 router.beforeEach((to, from, next) => {
 	/* 路由发生变化修改页面title */
