@@ -554,7 +554,7 @@ export default {
  
 </script>
  
-<style>
+<style >
 .map {
 	height:100%;
 	flex:10;

@@ -10,6 +10,7 @@ const UserCenter = () => import('@/components/UserCenter')
 const UcManage = () => import('@/components/UcManage')
 const UcChangepwd = () => import('@/components/UcChangepwd')
 const UcProfile = () => import('@/components/UcProfile')
+const AddLake = () =>import('@/components/map/AddLake')
 export default new Router({
   mode: 'history',
 	base: '/',
@@ -49,6 +50,15 @@ export default new Router({
 			meta: {
 				title: '添加地图',
 				requireAuth: true
+			}
+		},
+		{
+			path: '/map/add-lake',
+			name: 'AddLake',
+			component: AddLake,
+			meta: {
+				title: '添加湖泊',
+				requireAuth: true,
 			}
 		},
 		{

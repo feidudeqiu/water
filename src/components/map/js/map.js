@@ -6,6 +6,7 @@ import Feature from 'ol/Feature';
 import {Tile as TileLayer, Image as ImageLayer, Vector as VectorLayer} from 'ol/layer';
 import ImageWMS from 'ol/source/ImageWMS';
 import GeoJSON from 'ol/format/GeoJSON';
+import WKT from 'ol/format/WKT';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
@@ -215,6 +216,9 @@ function initMap(layers, view) {
     })
     return data.map;
 }
+function getWKTString(feature) {
+    return  (new WKT()).writeFeature(feature);
+}
 export default{
     initMap,
     initContextMenu,
@@ -223,5 +227,6 @@ export default{
     PolygonLayer,
     getVECLayer,
     getCVALayer,
-    PopupLayer
+    PopupLayer,
+    getWKTString
 }

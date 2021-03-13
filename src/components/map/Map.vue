@@ -208,6 +208,13 @@
                     <el-form-item label="BOD">
                         <el-input type="number" v-model="qualityInfo.bod" autocomplete="off"></el-input>
                     </el-form-item>
+                    <el-form-item label="水量">
+                        <el-input type="number" v-model="qualityInfo.volumn" autocomplete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="百分比水量">
+                        <span>{{parseFloat(qualityInfo.volumn/addWaterQualityInfo.lakeVolumn*100).toFixed(2)+'%'}}</span>
+                    </el-form-item>
+                    
                 </el-form>
             </div>
             <div>
@@ -228,7 +235,8 @@
                 <el-table-column property="chlorophyll" label="叶绿素"></el-table-column>
                 <el-table-column property="o2" label="DO"></el-table-column>
                 <el-table-column property="cod" label="COD"></el-table-column>
-                <el-table-column property="bod" label="BOD"></el-table-column>                  
+                <el-table-column property="bod" label="BOD"></el-table-column> 
+                <el-table-column property="volumn" label="水量"></el-table-column>                 
             </el-table>
         </el-dialog>
 
@@ -249,6 +257,7 @@
 import Map from './js/map'
 import domtoimage from 'dom-to-image';
 import echarts from 'echarts'
+import WKT from "terraformer-wkt-parser"
 export default {
     name: 'Map',
 	data(){
@@ -358,7 +367,13 @@ export default {
 					classname: 'bold',
 					icon: '/static/img/download_color.png',
 					callback: this.saveAsPngCallback
-				}
+                },
+                {
+                    text: '添加湖泊',
+                    classname: 'blod',
+                    icon: '/static/img/lake.png',
+                    callback: this.addLakeCallback
+                }
             ];
             this.contextMenu.clear();
             this.contextMenu.extend(contextmenuItems);
@@ -453,6 +468,9 @@ export default {
 				});
 			},300);
         },
+        addLakeCallback(e) {
+            window.open("/map/add-lake",'_blank');
+        },
         showLakeInfoCallback(obj) {
             var ht = "";
             var custom = obj.data.feature.values_.custom;
@@ -460,6 +478,18 @@ export default {
             ht+="<span style='font-size:14px;'>面积:"+parseFloat(custom.area).toFixed(2)+"(平方米)</span></br>";
             ht+="<span style='font-size:14px;'>平均深度:"+parseFloat(custom.height).toFixed(2)+"(米)</span></br>";
             this.popupLayer.showInfo(ht,obj.coordinate);
+            let data = new URLSearchParams(); 
+            data.append("name",custom.name);
+            data.append("area",custom.area);
+            data.append("height",custom.height);
+            data.append("geo",Map.getWKTString(obj.data.feature));
+            this.axios.post("/api/lake/add-lake",data)
+            .then(res=>{
+                console.info(res);
+            })
+            .catch(err=>{
+                console.info(err);
+            })
         },
         addMarkerCallback(e) {
             this.addMarkerInfo = {
@@ -569,7 +599,9 @@ export default {
             var monitors = this.rawMonitors.filter(monitor=>{
                     return monitor.featureData.lakeId === id;
             })
-            this.addWaterQualityInfo = {monitors:[],monitorTime:new Date()};
+            let lake = this.rawLakes.find(item=>item.id === id);
+            const volumn = lake.area * lake.height;
+            this.addWaterQualityInfo = {monitors:[],monitorTime:new Date(),lakeVolumn: volumn};
             monitors.forEach(monitor=>{
                 let item = {
                     tn: 0,
@@ -579,7 +611,8 @@ export default {
                     cod: 0,
                     bod: 0,
                     monitorId: monitor.props.id,
-                    name: monitor.props.name
+                    name: monitor.props.name,
+                    volumn: 0
                 }
                 this.addWaterQualityInfo.monitors.push(item);
             })
@@ -607,6 +640,7 @@ export default {
             .then(res=>{
                 this.$message.success("更新成功");
                 this.addWaterQualityDialogVisible = false;
+                setTimeout(function(){ location.reload(); }, 1500);
             })
             .catch(err=>{
                 this.$message.error(err.response.data.message);
@@ -662,7 +696,7 @@ export default {
             .then(res=>{
                 var lakes = res.data.lakes;
                 lakes.forEach(lake=>{
-                    lake.geo = JSON.parse(lake.geo);
+                    lake.geo = WKT.parse(lake.geo);
                     this.ploygonLayers.lake.addPloygon(lake.geo.coordinates,lake,{id:lake.id},"lake")
                 })
                 this.rawLakes = lakes;
@@ -874,8 +908,6 @@ export default {
 >>>.el-collapse-item__content {
     padding-bottom:0px;
 }
-</style>
-<style>
 .map {
     height:100%;
     flex: 10;
@@ -922,6 +954,8 @@ export default {
     color: #606266;
     text-align:center;
 }
+</style>
+<style>
   /*隐藏ol的一些自带元素*/
 .ol-attribution,.ol-zoom { display: none;}
 .ol-popup {
