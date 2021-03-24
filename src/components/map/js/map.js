@@ -6,10 +6,12 @@ import Feature from 'ol/Feature';
 import {Tile as TileLayer, Image as ImageLayer, Vector as VectorLayer} from 'ol/layer';
 import ImageWMS from 'ol/source/ImageWMS';
 import GeoJSON from 'ol/format/GeoJSON';
+import {boundingExtent,getCenter} from 'ol/extent';
 import WKT from 'ol/format/WKT';
 import VectorImageLayer from 'ol/layer/VectorImage';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
+import LineString from 'ol/geom/LineString';
 import {Icon, Style, Text, Fill, Circle, Stroke} from 'ol/style';
 import VectorSource from 'ol/source/Vector';
 import ContextMenu from 'ol-contextmenu'
@@ -76,7 +78,10 @@ class MarkerLayer {
         return this.vectorLayer;
     }
     removeMarker(id) {
-        this.vectorSource.removeFeature(this.vectorSource.getFeatureById(id));
+        const feature = this.vectorSource.getFeatureById(id);
+        if(feature) {
+            this.vectorSource.removeFeature(feature);
+        }
     }
     addMarker(coordinate,data,props,type,img) {
         var featureData = {
@@ -161,6 +166,78 @@ class PopupLayer {
         return this.container;
     }
 }
+class LineLayer {
+    constructor(resolution) {
+        this.vectorSource = new VectorSource({
+            features: []
+        });
+        this.vectorLayer = new VectorLayer({
+            source: this.vectorSource,
+        });
+        this.resolution = resolution;
+    }
+    getLayer() {
+        return this.vectorLayer;
+    }
+    addLine(coordinates,props,type) {
+        const geometry = new LineString(coordinates);
+        var featureData = {
+            geometry: geometry,
+            id: props.id,
+            type: type
+        }
+        var line = new Feature(featureData);
+        line.setId(props.id);
+        line.setStyle(this.getStyle(this.resolution,geometry));
+        this.vectorSource.addFeature(line);
+    }
+    removeLine(id) {
+        const feature = this.vectorSource.getFeatureById(id);
+        if(feature) {
+            this.vectorSource.removeFeature(feature);
+        }
+    }
+    getStyle(resolution,geometry) {
+        // var length = geometry.getLength();//获取线段长度
+        // var radio = (50 * resolution) / length;
+        // var dradio = 1;//投影坐标系，如3857等，在EPSG:4326下可以设置dradio=10000
+        var styles = [
+            new Style({
+                stroke: new Stroke({
+                    color: "red",
+                    width: 3,
+                })
+            })
+        ];
+        // for (var i = 0; i <= 1; i += radio) {
+        //     var arrowLocation = geometry.getCoordinateAt(i);
+        //     geometry.forEachSegment(function (start, end) {
+        //         if (start[0] == end[0] || start[1] == end[1]) return;
+        //         var dx1 = end[0] - arrowLocation[0];
+        //         var dy1 = end[1] - arrowLocation[1];
+        //         var dx2 = arrowLocation[0] - start[0];
+        //         var dy2 = arrowLocation[1] - start[1];
+        //         if (dx1 != dx2 && dy1 != dy2) {
+        //             if (Math.abs(dradio * dx1 * dy2 - dradio * dx2 * dy1) < 0.001) {
+        //                 var dx = end[0] - start[0];
+        //                 var dy = end[1] - start[1];
+        //                 var rotation = Math.atan2(dy, dx);
+        //                 styles.push(new Style({
+        //                     geometry: new Point(arrowLocation),
+        //                     image: new Icon({
+        //                         src: '/static/img/arrow.png',
+        //                         anchor: [0.75, 0.5],
+        //                         rotateWithView: false,
+        //                         rotation: -rotation
+        //                     })
+        //                 }));
+        //             }
+        //         } 
+        //     });
+        // }
+        return styles;
+    }
+}
 class PolygonLayer {
     constructor() {
         this.vectorSource = new VectorSource({
@@ -168,21 +245,6 @@ class PolygonLayer {
         });
         this.vectorLayer = new VectorLayer({
             source: this.vectorSource,
-            style: new Style({
-                fill: new Fill({
-                    color: 'rgba(255, 255, 255, 0.1)'
-                }),
-                stroke: new Stroke({
-                    color: 'red',
-                    width: 2
-                }),
-                image: new Circle({
-                    radius: 10,
-                    fill: new Fill({
-                        color: '#ffcc33'
-                    })
-                })
-            })
         });
     }
     addPloygon(coordinates,data,props,type) {
@@ -194,18 +256,55 @@ class PolygonLayer {
 
             }
         }
+        var styleData = {
+            fill: new Fill({
+                color: 'rgba(255, 255, 255, 0.1)'
+            }),
+            stroke: new Stroke({
+                color: 'red',
+                width: 2
+            }),
+            image: new Circle({
+                radius: 10,
+                fill: new Fill({
+                    color: '#ffcc33'
+                })
+            })
+        }
+        if(props.name) {
+            styleData.text = new Text({
+                text:  props.name,
+                font: "20px Arial"
+            })
+        }
         for(let key in data) {
             featureData.custom[key] = data[key];
         }
         var ploygon = new Feature(featureData);
         ploygon.setId(props.id);
+        var iconStyle = new Style(styleData);
+        ploygon.setStyle(iconStyle);
         this.vectorSource.addFeature(ploygon);
     }
     removePloygon(id) {
-        this.vectorSource.removeFeature(this.vectorSource.getFeatureById(id));
+        const feature = this.vectorSource.getFeatureById(id);
+        if(feature) {
+            this.vectorSource.removeFeature(feature);
+        }
+    }
+    getPloygon(id) {
+        return this.vectorSource.getFeatureById(id);
     }
     getLayer() {
         return this.vectorLayer;
+    }
+    getCenterById(id) {
+        return this.getCenter(this.getPloygon(id));
+    }
+    getCenter(feature) {
+        var extent = boundingExtent(feature.getGeometry().getCoordinates()[0]); //获取一个坐标数组的边界，格式为[minx,miny,maxx,maxy]
+        var center = getCenter(extent);   //获取边界区域的中心位置
+        return center;
     }
 }
 function initMap(layers, view) {
@@ -225,6 +324,7 @@ export default{
     getViewByDemo,
     MarkerLayer,
     PolygonLayer,
+    LineLayer,
     getVECLayer,
     getCVALayer,
     PopupLayer,

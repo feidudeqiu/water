@@ -1,12 +1,12 @@
 <template>
   <div style="width:100%;">
     <div class="head" style="display:flex;align-items:center;">
-        <a class="flex-row-center" href="/index" style="margin-left:50px;height:60px;">
-          <img src="~static/img/logo.svg" style="height:60px;" />
+        <a class="flex-row-center" href="/index" style="margin-left:50px;height:45px;">
+          <img src="~static/img/logo.svg" style="height:45px;" />
         </a>
-        <div style="height:50px;display:flex;justify-content:space-between;flex:2;min-width:150px;">
-			<div></div>
-			<div class="mine" style="position:relative;margin-left:50px;margin-right:150px;">
+        <div style="height:40px;display:flex;justify-content:space-between;flex:2;min-width:150px;">
+			<div class="text-h2 text-thick" style="flex:1;text-align:center;color:#E65800;">智慧水质治理平台</div>
+			<div class="mine" style="position:relative;margin-left:50px;margin-right:75px;">
 				<img id="profilePhoto" class="profile" src="~static/img/background.jpg" />
 				<div v-if="logged" class="flex-column-inline menu">
 					<div class="text-black text-h4 text-thick" style="text-align:center;">{{username}}</div>
@@ -38,16 +38,16 @@
 </template>
 <style scoped>
 .head {
-	height: 70px;
+	height: 50px;
 	width: 100%;
 	background-color: rgb(0, 25, 56);
 }
 .mine {
-	height: 50px;
+	height: 35px;
 }
 .profile {
-	width: 50px;
-	height: 50px;
+	width: 40px;
+	height: 40px;
 	border-radius: 50%;
 	position: relative;
   	z-index: 99;
