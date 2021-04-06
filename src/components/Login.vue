@@ -12,6 +12,7 @@
                         <div class="flex-row-center">
                             <div class="flex-row-inline" style="width:100%;justify-content: space-between;margin-top:10px;">
                                 <div class="option-button flex-row-center" style="background: #19be6b;cursor:pointer;color:white" @click="login()">登录</div>
+                                <div class="option-button flex-row-center" style="background: #19be6b;cursor:pointer;color:white" @click="$router.push('/register')">注册</div>
                             </div>
                         </div>
                     </div>
@@ -54,7 +55,7 @@
     height: fit-content;
 }
 .option-button {
-    width:100%;
+    width:45%;
     height:30px;
     border-radius: 5px;
     font-weight: 800;
@@ -90,6 +91,8 @@ export default {
                 .then(function (res) {
                     that.$store.commit("set_username",res.data.username);
                     that.$store.commit("set_role",res.data.role);
+                    that.$store.commit("set_workPlace",res.data.workPlace);
+                    that.$store.commit("set_createTime",res.data.createTime);
                     loading.close();
                     that.$router.push("/index");
                 })

@@ -3,89 +3,26 @@
         <div id="main" style="height:100%;width:100%;display:flex;">
             <div id="map" ref="rootmap" class="map"></div>
             <div id="column" class="column">
-                <el-collapse>
-                    <el-collapse-item>
-                        <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">1、当前项目</span>
-                        </template>
-                        <el-collapse>
-                            <el-collapse-item>
+                <el-tabs style="display:flex;flex-direction:column;" v-model="tab" type="card" >
+                    <el-tab-pane label="湖泊" name="lake">
+                        <el-collapse v-model="currentLake" accordion v-on:change="lakeChange">
+                            <el-collapse-item  :name="lake.lakeInfo.id" v-for="lake in lakes" v-bind:key="lake.lakeInfo.id">
                                 <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">1、项目基本情况</span>
+                                    <span class="text-h4 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
                                 </template>
-                                <el-collapse>
-                                    <el-collapse-item>
-                                        <template slot="title">
-                                            <span class="text-h5 text-thick" style="margin-left:10px;">1、项目基本信息</span>
-                                        </template>
-                                        <div v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
-                                            <div style="background:white;border-radius:5px;padding-left:5px;">
-                                                <div @click="jumpToLake(lake.lakeInfo.id)" class="flex-row-inline" style="cursor:pointer;">
-                                                    <span class="text-h6 text-thick">项目名称</span>
-                                                    <span class="text-h6 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-h6 text-thick">建设时间</span>
-                                                    <span>{{formatTimeByStamp(lake.lakeInfo.createTime)}}</span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-h6 text-thick">设计单位</span>
-                                                    <span>{{getUserWorkPlace()}}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </el-collapse-item>
-                                    <el-collapse-item>
-                                        <template slot="title">
-                                            <span class="text-h5 text-thick" style="margin-left:10px;">2、导入项目地图，河网图层等</span>
-                                        </template>
-                                    </el-collapse-item>
-                                </el-collapse>
-                            </el-collapse-item>
-                            <el-collapse-item>
-                                <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">2、数据输入/修改</span>
-                                </template>
-                                <div v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
-                                    <div style="background:white;border-radius:5px;padding-left:5px;">
-                                        <div @click="jumpToLake(lake.lakeInfo.id)" class="flex-row-inline" style="cursor:pointer;">
-                                            <img style="height:20px;" src="/static/img/lake.png">
-                                            <span class="text-h6 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-h6 text-thick">面积(平方米)</span>
-                                            <span>{{lake.lakeInfo.area}}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-h6 text-thick">平均深度(米)</span>
-                                            <span>{{lake.lakeInfo.height}}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-h6 text-thick">蓄水量(立方米)</span>
-                                            <span>{{parseFloat(lake.lakeInfo.area*lake.lakeInfo.height).toFixed(2)}}</span>
-                                        </div>
-                                        <div>
-                                            <el-button @click="resetLakeInfo(lake.lakeInfo,lake.lakeInfo.id)" size="mini" type="primary">修改湖泊信息</el-button>
-                                            <el-button @click="$message.info('请在地图中选中湖泊右键添加检测点')" size="mini" type="primary">添加检测点</el-button>
-                                            <el-button @click="updateWaterQuality(lake.lakeInfo.id)" size="mini" type="primary">更新水质数据</el-button>
+                                <div style="display:flex;flex-wrap:wrap;">
+                                    <div class="marker-item" style="margin-top:0px;"  v-for="monitor in lake.monitors" v-bind:key="monitor.props.id">
+                                        <div class="marker-item-info" style="margin-top:0px;cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
+                                            <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:5px;" >
+                                            <span class="text-normal text-h6">{{monitor.props.name}}</span>
                                         </div>
                                     </div>
-                                    
                                 </div>
-                            </el-collapse-item>
-                            <el-collapse-item >
-                                <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">3、结果文件查看</span>
-                                </template>
-                                <el-collapse v-model="currentLake" accordion v-on:change="lakeChange">
-                                    <el-collapse-item :name="lake.lakeInfo.id" v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
-                                    <template slot="title">
-                                        <span class="text-h5 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
-                                    </template>
-                                    <el-collapse accordion v-on:change="qualityChange">
+                                <div style="display:flex;justify-content:center;">
+                                    <el-collapse style="width:90%;" accordion v-on:change="qualityChange">
                                         <el-collapse-item :name="quality.monitorTime" v-for="quality in lake.qualities" v-bind:key="quality.monitorTime">
                                             <template slot="title">
-                                                <i style="font-size:16px;" class="el-icon-timer"></i>
+                                                 <i style="font-size:16px;" class="el-icon-timer"></i>
                                                 <span class="text-h6 text-secondary">{{formatTimeByStamp(quality.monitorTime)}}</span>
                                             </template>
                                             <div v-if="waterAnalyse[lake.lakeInfo.id+''+quality.monitorTime]">
@@ -169,38 +106,70 @@
                                             </div>
                                         </el-collapse-item>
                                     </el-collapse>
-                                </el-collapse-item>
-                                </el-collapse>
-                                
+                                </div>
                             </el-collapse-item>
                         </el-collapse>
+                    </el-tab-pane>
+                    <el-tab-pane label="标记" name="marker">
+                        <el-input placeholder="请输入搜索内容" size="mini" prefix-icon="el-icon-search" v-model="markerInput"></el-input>
+                        <div class="marker-item" v-for="marker in markers" v-bind:key="marker.props.id">
+                            <div class="marker-item-info" style="cursor:pointer;" @click="jump(marker.props.location[0],marker.props.location[1])">
+                                <img src="~static/img/marker.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                <span class="text-normal text-h6">{{marker.props.name}}</span>
+                            </div>
+                            <div class="marker-item-info">
+                                <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{marker.featureData.username}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{'('+parseFloat(marker.props.location[0]).toFixed(5)+','+parseFloat(marker.props.location[1]).toFixed(5)+')'}}</span>
+                            </div>
+                            <div  class="marker-item-info">
+                                <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                <span class="text-normal text-h6">{{marker.featureData.note}}</span>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+                    <el-tab-pane label="检测点" name="monitor">
+                        <div style="display:flex;height:100%;flex-direction:column;">
+                            <el-input size="mini" placeholder="请输入搜索内容" prefix-icon="el-icon-search" v-model="monitorInput"></el-input>
+                            <div style="overflow:auto;">
+                                <div class="marker-item" v-for="monitor in monitors" v-bind:key="monitor.props.id">
+                                    <div class="marker-item-info" style="cursor:pointer;" @click="jump(monitor.props.location[0],monitor.props.location[1])">
+                                        <img src="~static/img/monitor.png" style="height:20px;margin-left:5px;margin-right:10px;" >
+                                        <span class="text-normal text-h6">{{monitor.props.name}}</span>
+                                    </div>
+                                    <div class="marker-item-info">
+                                        <i class="el-icon-user" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{monitor.featureData.username}}</span>
+                                    </div>
+                                    <div  class="marker-item-info">
+                                        <i class="el-icon-location-outline" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{'('+parseFloat(monitor.props.location[0]).toFixed(5)+','+parseFloat(monitor.props.location[1]).toFixed(5)+')'}}</span>
+                                    </div>
+                                    <div  class="marker-item-info">
+                                        <i class="el-icon-collection-tag" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <span class="text-normal text-h6">{{monitor.featureData.note}}</span>
+                                    </div>
+                                    <div class="marker-item-info" >
+                                        <i class="el-icon-setting" style="font-size: 20px;margin-left:5px;margin-right:10px;"></i>
+                                        <img src="~static/img/table.png" title="水质数据" @click="showWaterQualities(monitor.props.id)" style="height:20px;cursor:pointer;height:20px;margin-left:5px;margin-right:10px;" >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
-                    </el-collapse-item>
-                    <el-collapse-item>
-                        <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">2、历史项目</span>
-                        </template>
-                    </el-collapse-item>
-                    <el-collapse-item>
-                        <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">3、标准化表格</span>
-                        </template>
+                    </el-tab-pane>
+                    <el-tab-pane label="标准" name="standard">
                         <el-card >
                             <span style="cursor:pointer;" @click="waterQualityStandardVisible = true;getWaterQualityStandard()" class="text-h5 text-thick text-primary">水质标准</span>
                         </el-card>
                         <el-card >
                             <span style="cursor:pointer;" @click="waterPurifyStandardVisible = true;getWaterPurifyStandard()" class="text-h5 text-thick text-primary">配方治理标准</span>
                         </el-card>
-                    </el-collapse-item>
-                    <el-collapse-item>
-                        <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">4、其他功能</span>
-                        </template>
-                        <div>
-                            
-                        </div>
-                    </el-collapse-item>
-                </el-collapse>
+                    </el-tab-pane>
+                </el-tabs>
             </div>
         </div>
         <el-dialog title="添加标记" :visible.sync="addMarkerDialogVisible">
@@ -356,66 +325,16 @@
                 <el-table-column property="level5" label="Ⅴ类"></el-table-column>         
             </el-table>
         </el-dialog>
-        <el-dialog width="80%" title="配方治理标准" :visible.sync="waterPurifyStandardVisible">
+        <el-dialog title="配方治理标准" :visible.sync="waterPurifyStandardVisible">
             <el-table max-height="350" :data="waterPurifyStandard">
                 <el-table-column property="name" label="名称" ></el-table-column>
-                <el-table-column property="tn" label="TN(mg/m2)"></el-table-column>
-                <el-table-column property="tp" label="TP(mg/m2)"></el-table-column>
-                <el-table-column property="chlorophyll" label="叶绿素(mg/m2)"></el-table-column>
-                <el-table-column property="bod" label="BOD(mg/m2)"></el-table-column>
-                <el-table-column property="cod" label="COD(mg/m2)"></el-table-column>     
-                <el-table-column property="o2" label="DO(mg/m2)"></el-table-column>
-                <el-table-column width="200" label="操作">
-                    <template slot-scope="scope">
-                        <el-button type="primary" size="mini" @click="resetPurifyStandard(scope.$index, scope.row)">修改参数</el-button>
-                    </template>
-                </el-table-column>     
+                <el-table-column property="tn" label="TN"></el-table-column>
+                <el-table-column property="tp" label="TP"></el-table-column>
+                <el-table-column property="chlorophyll" label="叶绿素"></el-table-column>
+                <el-table-column property="bod" label="BOD"></el-table-column>
+                <el-table-column property="cod" label="COD"></el-table-column>     
+                <el-table-column property="o2" label="DO"></el-table-column>      
             </el-table>
-            <el-dialog
-                width="60%"
-                title="修改参数"
-                :visible.sync="innerWaterPurifyStandardVisible"
-                append-to-body>
-                <el-form size="mini" label-width="150px" :model="innerWaterPurifyStandard">
-                    <el-form-item label="参数名称">
-                        <el-input :disabled="true" v-model="innerWaterPurifyStandard.name" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="TN(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.tn" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="TP(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.tp" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="叶绿素(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.chlorophyll" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="BOD(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.bod" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="COD(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.cod" autocomplete="off"></el-input>
-                    </el-form-item>
-                    <el-form-item label="DO(mg/m2)">
-                        <el-input type="number" v-model="innerWaterPurifyStandard.o2" autocomplete="off"></el-input>
-                    </el-form-item>
-                </el-form>
-            </el-dialog>
-        </el-dialog>
-        <el-dialog
-            title="修改湖泊信息"
-            :visible.sync="lakeInfoVisible"
-            append-to-body>
-            <el-form size="mini" label-width="150px" :model="lakeInfo">
-                <el-form-item label="湖泊名称">
-                    <el-input maxlength="32" v-model="lakeInfo.name" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="平均深度(米)">
-                    <el-input type="number" v-model="lakeInfo.height" autocomplete="off"></el-input>
-                </el-form-item>
-                <el-form-item label="面积(平方米)">
-                    <el-input type="number" v-model="lakeInfo.area" autocomplete="off"></el-input>
-                </el-form-item>
-            </el-form>
         </el-dialog>
   </div>
 </template>
@@ -478,18 +397,12 @@ export default {
             waterQualityStandard: [],
             waterPurifyStandardVisible: false,
             waterPurifyStandard: [],
-            innerWaterPurifyStandardVisible:false,
-            innerWaterPurifyStandard: {},
             analyseDetailVisible: false,
             analyseDetail: {},
             waterPurify: {
 
             },
             waterAnalyse: {
-
-            },
-            lakeInfoVisible: false,
-            lakeInfo: {
 
             }
         }
@@ -528,16 +441,6 @@ export default {
                 monitors: rawMonitors.filter((monitor) => monitor.featureData.lakeId === rawLake.id),
                 qualities: qualities
                 }
-            })
-        },
-        finishedLake() {
-            return this.lakes.filter(item=>{
-                return item.lakeInfo.finished === true;
-            })
-        },
-        unfinishedLake() {
-            return this.lakes.filter(item=>{
-                return item.lakeInfo.finished === false;
             })
         }
     },
@@ -1292,29 +1195,6 @@ export default {
                 this.analyseDetail.list[len].monitorName = "整体入水";
             }
             this.analyseDetailVisible = true;
-        },
-        getUserWorkPlace() {
-            return this.$store.getters.get_workPlace;
-        },
-        resetPurifyStandard(index,row) {
-            this.innerWaterPurifyStandard = {
-                tn: row.tn,
-                tp: row.tp,
-                cod: row.cod,
-                chlorophyll: row.chlorophyll,
-                bod: row.bod,
-                o2: row.o2,
-                name: row.name
-            }
-            this.innerWaterPurifyStandardVisible = true;
-        },
-        resetLakeInfo(lakeInfo,lakeId) {
-            this.lakeInfo = {
-                name: lakeInfo.name,
-                area: lakeInfo.area,
-                height: lakeInfo.height
-            },
-            this.lakeInfoVisible = true;
         }
     },
     mounted() {
@@ -1371,15 +1251,6 @@ export default {
 >>>.el-collapse-item__content {
     background: #282c35;   
 } */
->>>.el-collapse-item__content {
-    padding-left:6px;
-    padding-top:3px;
-    padding-bottom:3px;
-    background:#F7F8FA;
-}
->>>.el-collapse-item__wrap:last-child {
-    border-bottom: 0px;
-}
 .map {
     height:100%;
     flex: 10;

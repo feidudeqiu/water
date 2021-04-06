@@ -15,4 +15,20 @@ export default {
         state.role = "";
         localStorage.setItem("role",'');
     },
+    set_createTime(state, createTime) {
+        state.createTime = createTime;
+        localStorage.setItem("createTime",createTime);
+    },
+    remove_createTime(state) {
+        state.createTime = "";
+        localStorage.setItem("createTime","");
+    },
+    set_workPlace(state, workPlace) {
+        state.workPlace = workPlace;
+        localStorage.setItem("workPlace",workPlace);
+    },
+    remove_workPlace(state) {
+        state.workPlace = "";
+        localStorage.setItem("workPlace","");
+    }
 }

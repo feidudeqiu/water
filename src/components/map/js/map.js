@@ -60,8 +60,8 @@ function getCVALayer() {
 }
 function getViewByDemo() {
     return new View({
-        center: [11597489.008261489,3586607.7438052753],
-        zoom: 16
+        center: [11580353.774161404,3588672.3694916293],
+        zoom: 18
     })
 }
 class MarkerLayer {

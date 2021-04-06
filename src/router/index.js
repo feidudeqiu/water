@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 Vue.use(Router)
 const Login = () => import('@/components/Login')
+const Register = () => import('@/components/Register')
 const Index = () => import('@/components/Index')
 const Map = () => import('@/components/map/Map')
 const AddMap = () => import('@/components/map/AddMap')
@@ -41,6 +42,15 @@ export default new Router({
 			meta: {
 					title: '地图',
 					requireAuth: true
+				}
+		},
+		{
+			path: '/register',
+			name: 'Register',
+			component: Register,
+			meta: {
+					title: '注册',
+					requireAuth: false
 				}
 		},
 		{

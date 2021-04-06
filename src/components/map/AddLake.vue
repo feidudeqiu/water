@@ -44,10 +44,10 @@
                 <el-form-item label="湖泊名称">
                     <el-input maxlength="32" v-model="addLakeInfo.name" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="湖泊面积">
+                <el-form-item label="湖泊面积(m2)">
                     <el-input type="number" v-model="addLakeInfo.area" autocomplete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="湖泊平均深度">
+                <el-form-item label="湖泊平均深度(m)">
                     <el-input type="number" v-model="addLakeInfo.height" autocomplete="off"></el-input>
                 </el-form-item>
             </el-form>
@@ -140,7 +140,7 @@ export default {
 
         var column = document.getElementById("column");
         const resizeObserver = new ResizeObserver(entries => {
-            column.style.height = document.body.clientHeight-120+"px";
+            column.style.height = document.body.clientHeight-100+"px";
         });
         resizeObserver.observe(document.body);
 
