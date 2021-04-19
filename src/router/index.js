@@ -7,11 +7,13 @@ const Index = () => import('@/components/Index')
 const Map = () => import('@/components/map/Map')
 const AddMap = () => import('@/components/map/AddMap')
 const MapTest = () => import('@/components/map/MapTest')
-const UserCenter = () => import('@/components/UserCenter')
-const UcManage = () => import('@/components/UcManage')
-const UcChangepwd = () => import('@/components/UcChangepwd')
-const UcProfile = () => import('@/components/UcProfile')
+const UserCenter = () => import('@/components/userCenter/UserCenter')
+const UcManage = () => import('@/components/userCenter/UcManage')
+const ChangePwd = () => import('@/components/Changepwd')
+const UcProfile = () => import('@/components/userCenter/UcProfile')
 const AddLake = () =>import('@/components/map/AddLake')
+const UcRegister = () =>import('@/components/userCenter/UcRegister')
+const UcDataManage = () =>import('@/components/userCenter/UcDataManage')
 export default new Router({
   mode: 'history',
 	base: '/',
@@ -22,6 +24,14 @@ export default new Router({
 			component: Login,
 			meta: {
 					title: '登录'
+				}
+		},
+		{
+			path: '/changePwd',
+			name: 'ChangePwd',
+			component: ChangePwd,
+			meta: {
+					title: '修改密码'
 				}
 		},
 		// {
@@ -83,22 +93,45 @@ export default new Router({
 		{
 			path: '/user-center',
 			name: 'UserCenter',
-      redirect: '/user-center/uc-profile',
+      		redirect: '/user-center/uc-profile',
 			component: UserCenter,
-      children: [
-        {
-          path:'/user-center/uc-changepwd',
-          component: UcChangepwd
-        },
-        {
-          path:'/user-center/uc-manage',
-          component: UcManage
-        },
-        {
-          path: '/user-center/uc-profile',
-          component: UcProfile
-        }
-      ],
+      		children: [
+				{
+					path:'/user-center/uc-manage',
+					component: UcManage,
+					meta: {
+						title: '用户管理',
+						requireAuth: true,
+						requireRole: 2
+					}
+				},
+				{
+					path: '/user-center/uc-profile',
+					component: UcProfile,
+					meta: {
+						title: '个人信息',
+						requireAuth: true
+					}
+				},
+				{
+					path: '/user-center/uc-register',
+					component: UcRegister,
+					meta: {
+						title: '注册管理',
+						requireAuth: true,
+						requireRole: 2
+					}
+				},
+				{
+					path: '/user-center/uc-data-manage',
+					component: UcDataManage,
+					meta: {
+						title: '数据管理',
+						requireAuth: true,
+						requireRole: 2
+					}
+				}
+      		],
 			meta: {
 				title: '用户中心',
 				requireAuth: true

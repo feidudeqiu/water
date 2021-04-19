@@ -6,20 +6,23 @@
                 <el-collapse>
                     <el-collapse-item>
                         <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">1、当前项目</span>
+                            <div style="width:100%;background:gray;">
+                                <span class="text-h4 text-thick" style="margin-left:10px;">当前项目</span>
+
+                            </div>
                         </template>
                         <el-collapse>
                             <el-collapse-item>
                                 <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">1、项目基本情况</span>
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">项目基本情况</span>
                                 </template>
                                 <el-collapse>
                                     <el-collapse-item>
                                         <template slot="title">
-                                            <span class="text-h5 text-thick" style="margin-left:10px;">1、项目基本信息</span>
+                                            <span class="text-h5 text-thick" style="margin-left:10px;">项目基本信息</span>
                                         </template>
                                         <div v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
-                                            <div style="background:white;border-radius:5px;padding-left:5px;">
+                                            <div style="background:white;border-radius:5px;padding-left:5px;margin-top:5px;">
                                                 <div @click="jumpToLake(lake.lakeInfo.id)" class="flex-row-inline" style="cursor:pointer;">
                                                     <span class="text-h6 text-thick">项目名称</span>
                                                     <span class="text-h6 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
@@ -37,17 +40,17 @@
                                     </el-collapse-item>
                                     <el-collapse-item>
                                         <template slot="title">
-                                            <span class="text-h5 text-thick" style="margin-left:10px;">2、导入项目地图，河网图层等</span>
+                                            <span class="text-h5 text-thick" style="margin-left:10px;">导入项目地图，河网图层等</span>
                                         </template>
                                     </el-collapse-item>
                                 </el-collapse>
                             </el-collapse-item>
                             <el-collapse-item>
                                 <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">2、数据输入/修改</span>
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">数据输入/修改</span>
                                 </template>
                                 <div v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
-                                    <div style="background:white;border-radius:5px;padding-left:5px;">
+                                    <div style="background:white;border-radius:5px;padding-left:5px;margin-top:5px;">
                                         <div @click="jumpToLake(lake.lakeInfo.id)" class="flex-row-inline" style="cursor:pointer;">
                                             <img style="height:20px;" src="/static/img/lake.png">
                                             <span class="text-h6 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
@@ -65,9 +68,13 @@
                                             <span>{{parseFloat(lake.lakeInfo.area*lake.lakeInfo.height).toFixed(2)}}</span>
                                         </div>
                                         <div>
-                                            <el-button @click="resetLakeInfo(lake.lakeInfo,lake.lakeInfo.id)" size="mini" type="primary">修改湖泊信息</el-button>
-                                            <el-button @click="$message.info('请在地图中选中湖泊右键添加检测点')" size="mini" type="primary">添加检测点</el-button>
-                                            <el-button @click="updateWaterQuality(lake.lakeInfo.id)" size="mini" type="primary">更新水质数据</el-button>
+                                            <el-button style="margin-top:5px;" @click="resetLakeInfo(lake.lakeInfo,lake.lakeInfo.id)" size="mini" type="primary">修改湖泊信息</el-button>
+                                            <el-button style="margin-top:5px;" @click="jumpToLake(lake.lakeInfo.id);$message.info('请在地图中选中湖泊右键添加检测点')" size="mini" type="primary">添加检测点</el-button>
+                                            <el-button style="margin-top:5px;" @click="updateWaterQuality(lake.lakeInfo.id)" size="mini" type="primary">更新水质数据</el-button>
+                                            <el-button style="margin-top:5px;" @click="lakeDataClone(lake.lakeInfo.id)" size="mini" type="primary">项目数据下载</el-button>
+                                            <el-tooltip effect="dark" content="项目将被放入历史项目中，可以查看数据但无法修改" placement="bottom">
+                                                <el-button style="margin-top:5px;" @click="finishLake(lake.lakeInfo.id)" size="mini" type="warning">项目结算</el-button>
+                                            </el-tooltip>
                                         </div>
                                     </div>
                                     
@@ -75,14 +82,14 @@
                             </el-collapse-item>
                             <el-collapse-item >
                                 <template slot="title">
-                                    <span class="text-h5 text-thick" style="margin-left:10px;">3、结果文件查看</span>
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">结果文件查看</span>
                                 </template>
-                                <el-collapse v-model="currentLake" accordion v-on:change="lakeChange">
+                                <el-collapse v-model="unfinishedCurrentLake" accordion v-on:change="lakeChange">
                                     <el-collapse-item :name="lake.lakeInfo.id" v-for="lake in unfinishedLake" v-bind:key="lake.lakeInfo.id">
                                     <template slot="title">
                                         <span class="text-h5 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
                                     </template>
-                                    <el-collapse accordion v-on:change="qualityChange">
+                                    <el-collapse accordion v-on:change="unfinishedQualityChange">
                                         <el-collapse-item :name="quality.monitorTime" v-for="quality in lake.qualities" v-bind:key="quality.monitorTime">
                                             <template slot="title">
                                                 <i style="font-size:16px;" class="el-icon-timer"></i>
@@ -105,7 +112,7 @@
                                                     </div>
                                                     <div v-else >
                                                         <div class="text-h5 text-thick">水质治理配方(m2)</div>
-                                                        <div v-if="countPurifyArea(waterPurify[lake.lakeInfo.id+''+quality.monitorTime])>lake.lakeInfo.area">
+                                                        <div v-if="countPurifyArea(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify)>lake.lakeInfo.area">
                                                             <div class="flex-row-inline" style="color:#ff0000">
                                                                 <span>请减少入水量</span>
                                                                 <el-tooltip class="item" effect="dark" content="植物配方总面积大于湖泊面积，无法满足要求，需要减少入水量" placement="bottom">
@@ -113,56 +120,60 @@
                                                                 </el-tooltip>
                                                             </div>
                                                         </div>
-                                                        <div v-else style="display:flex; flex-wrap:wrap;">
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_TN</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfTn).toFixed(2)}}</div>
+                                                        <div v-else>
+                                                            <div  style="display:flex; flex-wrap:wrap;">
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_TN</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfTn).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_TP</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfTp).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_DO</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfDo).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_COD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfCod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_BOD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfBod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_CH</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfCh).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_TN</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdTn).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_TP</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdTp).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_DO</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdDo).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_COD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdCod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_BOD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdBod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_CH</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdCh).toFixed(2)}}</div>
+                                                                </div>
                                                             </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_TP</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfTp).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_DO</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfDo).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_COD</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfCod).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_BOD</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfBod).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WF_CH</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wfCh).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_TN</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdTn).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_TP</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdTp).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_DO</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdDo).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_COD</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdCod).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_BOD</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdBod).toFixed(2)}}</div>
-                                                            </div>
-                                                            <div class="purify-item">
-                                                                <div class="purify-title">WD_CH</div>
-                                                                <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].wdCh).toFixed(2)}}</div>
-                                                            </div>
+                                                            <div style="height:200px;margin-top:10px;margin-bottom:10px;" :id="'pie'+lake.lakeInfo.id+''+quality.monitorTime"></div>
                                                         </div>
+                                                        
                                                         
                                                     </div>
                                                 </div>
@@ -178,12 +189,112 @@
                     </el-collapse-item>
                     <el-collapse-item>
                         <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">2、历史项目</span>
+                            <div style="width:100%;background:gray;">
+                            <span class="text-h4 text-thick" style="margin-left:10px;">历史项目</span>
+                            </div>
                         </template>
+                        <el-collapse v-model="finishedCurrentLake" accordion v-on:change="lakeChange">
+                                    <el-collapse-item :name="lake.lakeInfo.id" v-for="lake in finishedLake" v-bind:key="lake.lakeInfo.id">
+                                    <template slot="title">
+                                        <span class="text-h5 text-thick" style="margin-left:10px;">{{lake.lakeInfo.name}}</span>
+                                    </template>
+                                    <el-collapse accordion v-on:change="finishedQualityChange">
+                                        <el-collapse-item :name="quality.monitorTime" v-for="quality in lake.qualities" v-bind:key="quality.monitorTime">
+                                            <template slot="title">
+                                                <i style="font-size:16px;" class="el-icon-timer"></i>
+                                                <span class="text-h6 text-secondary">{{formatTimeByStamp(quality.monitorTime)}}</span>
+                                            </template>
+                                            <div v-if="waterAnalyse[lake.lakeInfo.id+''+quality.monitorTime]">
+                                                <div class="flex-row-inline">
+                                                    <span class="text-h5 text-thick">水质分析图</span>
+                                                    <img src="~static/img/table.png" style="height:20px;cursor:pointer;height:20px;margin-left:5px;" @click="showAnalyseDetail(lake.lakeInfo.id,quality.monitorTime)" title="详细评价数据"/>
+                                                </div>
+                                                <div style="height:200px;margin-top:10px;margin-bottom:10px;" :id="lake.lakeInfo.id+''+quality.monitorTime">
+                                                    
+                                                </div>
+                                                <div v-if="!qualityJudge(lake.lakeInfo.id,quality.monitorTime)">
+                                                    <div slot="lake.lakeInfo.id+''+quality.monitorTime" slot-scope="id">
+                                                        <span>{{id}}</span>
+                                                    </div>
+                                                    <div v-if="!waterPurify[lake.lakeInfo.id+''+quality.monitorTime]">
+                                                            <span class="text-secondary">获取配方中</span><i class="el-icon-loading text-secondary"></i>
+                                                    </div>
+                                                    <div v-else >
+                                                        <div class="text-h5 text-thick">水质治理配方(m2)</div>
+                                                        <div v-if="countPurifyArea(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify)>lake.lakeInfo.area">
+                                                            <div class="flex-row-inline" style="color:#ff0000">
+                                                                <span>请减少入水量</span>
+                                                                <el-tooltip class="item" effect="dark" content="植物配方总面积大于湖泊面积，无法满足要求，需要减少入水量" placement="bottom">
+                                                                    <i style="font-size:16px;" class="el-icon-warning"></i>
+                                                                </el-tooltip>
+                                                            </div>
+                                                        </div>
+                                                        <div v-else>
+                                                            <div style="display:flex; flex-wrap:wrap;">
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_TN</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfTn).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_TP</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfTp).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_DO</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfDo).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_COD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfCod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_BOD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfBod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WF_CH</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wfCh).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_TN</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdTn).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_TP</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdTp).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_DO</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdDo).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_COD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdCod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_BOD</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdBod).toFixed(2)}}</div>
+                                                                </div>
+                                                                <div class="purify-item">
+                                                                    <div class="purify-title">WD_CH</div>
+                                                                    <div class="purify-value">{{parseFloat(waterPurify[lake.lakeInfo.id+''+quality.monitorTime].purify.wdCh).toFixed(2)}}</div>
+                                                                </div>
+                                                            </div>
+                                                            <div style="height:200px;margin-top:10px;margin-bottom:10px;" :id="'pie'+lake.lakeInfo.id+''+quality.monitorTime"></div>                                                            
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </el-collapse-item>
+                                    </el-collapse>
+                                </el-collapse-item>
+                                </el-collapse>
                     </el-collapse-item>
                     <el-collapse-item>
                         <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">3、标准化表格</span>
+                            <div style="width:100%;background:gray;">
+                            <span class="text-h4 text-thick" style="margin-left:10px;">标准化表格</span>
+                            </div>
                         </template>
                         <el-card >
                             <span style="cursor:pointer;" @click="waterQualityStandardVisible = true;getWaterQualityStandard()" class="text-h5 text-thick text-primary">水质标准</span>
@@ -194,11 +305,32 @@
                     </el-collapse-item>
                     <el-collapse-item>
                         <template slot="title">
-                            <span class="text-h4 text-thick" style="margin-left:10px;">4、其他功能</span>
+                            <div style="width:100%;background:gray;">
+                            <span class="text-h4 text-thick" style="margin-left:10px;">其他功能</span>
+                            </div>
                         </template>
-                        <div>
-                            
-                        </div>
+                        <el-collapse>
+                            <el-collapse-item>
+                                <template slot="title">
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">水质应急处理设施</span>
+                                </template>
+                            </el-collapse-item>
+                            <el-collapse-item>
+                                <template slot="title">
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">全生态理念</span>
+                                </template>
+                            </el-collapse-item>
+                            <el-collapse-item>
+                                <template slot="title">
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">省联网，水质预测</span>
+                                </template>
+                            </el-collapse-item>
+                            <el-collapse-item>
+                                <template slot="title">
+                                    <span class="text-h5 text-thick" style="margin-left:10px;">全流域覆盖</span>
+                                </template>
+                            </el-collapse-item>
+                        </el-collapse>
                     </el-collapse-item>
                 </el-collapse>
             </div>
@@ -275,7 +407,7 @@
             
             <div slot="footer" class="dialog-footer">
                 <el-button @click="addWaterQualityDialogVisible = false">取消</el-button>
-                <el-button type="primary" @click="addWaterQualityDialog()">更新</el-button>
+                <el-button :disabled="!addWaterQualityInfo.monitors || addWaterQualityInfo.monitors.length==0" type="primary" @click="addWaterQualityDialog()">更新</el-button>
             </div>
         </el-dialog>
         <el-dialog title="水质数据" :visible.sync="waterQualityVisible">
@@ -290,65 +422,117 @@
                 <el-table-column property="volumn" label="水量(m3)"></el-table-column>                 
             </el-table>
         </el-dialog>
-        <el-dialog width="90%" title="详细评价数据" :visible.sync="analyseDetailVisible">
-            <el-table :data="analyseDetail.list">
-                <el-table-column property="monitorName" label="检测点名" ></el-table-column>
-                <el-table-column label="TN">
-                    <el-table-column property="tn" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
-                    <el-table-column label="等级" width="60px;">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.tnLevel)}">{{formatLevelByNum(scope.row.tnLevel)}}</div>
-                        </template>
-                    </el-table-column>
-                </el-table-column>
-                <el-table-column label="TP">
-                    <el-table-column property="tp" label="浓度(mg/L)" width="100px;" :formatter="floatFix"></el-table-column>
-                    <el-table-column label="等级" width="60px;">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.tpLevel)}">{{formatLevelByNum(scope.row.tpLevel)}}</div>
-                        </template>
-                    </el-table-column>
-                </el-table-column>
-                <el-table-column label="叶绿素">
-                    <el-table-column property="chlorophyll" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
-                    <!-- <el-table-column label="等级">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.chlorophyllLevel)}">{{formatLevelByNum(scope.row.chlorophyllLevel)}}</div>
-                        </template>
-                    </el-table-column> -->
-                </el-table-column>
-                <el-table-column label="DO">
-                    <el-table-column property="o2" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
-                    <el-table-column label="等级" width="60px;">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.o2Level)}">{{formatLevelByNum(scope.row.o2Level)}}</div>
-                        </template>
-                    </el-table-column>
-                </el-table-column>
-                <el-table-column label="COD">
-                    <el-table-column property="cod" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
-                    <el-table-column label="等级" width="60px;">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.codLevel)}">{{formatLevelByNum(scope.row.codLevel)}}</div>
-                        </template>
-                    </el-table-column>
-                </el-table-column>
-                <el-table-column label="BOD">
-                    <el-table-column property="bod" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
-                    <el-table-column label="等级"  width="60px;">
-                        <template slot-scope="scope">
-                            <div :style="{'color':getColorByLevel(scope.row.bodLevel)}">{{formatLevelByNum(scope.row.bodLevel)}}</div>
-                        </template>
-                    </el-table-column>
-                </el-table-column>
-                <el-table-column label="水量(m3)" property="volumn" :formatter="volumnFix">
 
-                </el-table-column>
-            </el-table>
+        <el-dialog :width="analyseDetailType?'90%':'50%'" :visible.sync="analyseDetailVisible">
+            <div slot="title" class="dialog-title">
+                <span>详细评价数据</span>
+                <el-switch v-model="analyseDetailType" active-text="单表" inactive-text="多表"></el-switch>
+            </div>
+            <div v-if="!analyseDetailType">
+                <div v-for="table in analyseDetail.tables" v-bind:key="table.monitorId">
+                    <div class="flex-row-inline">
+                        <img style="height:20px;margin-right:10px;" src="/static/img/monitor.png">
+                        <span>{{table.monitorName}}</span>
+                    </div>
+                    <el-table size="mini" :data="table.data" >
+                        <el-table-column property="name" label="指标"></el-table-column>
+                        <el-table-column property="value" label="实测进水浓度(mg/L)"></el-table-column>
+                        <el-table-column label="地表水环境质量标准">
+                            <el-table-column label="Ⅰ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':scope.row.level<1?getColorByLevel(scope.row.level):'none'}">{{scope.row.standard.level1}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="Ⅱ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':(scope.row.level<=2&&scope.row.level>1)?getColorByLevel(scope.row.level):'none'}">{{scope.row.standard.level2}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="Ⅲ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':(scope.row.level<=3&&scope.row.level>2)?getColorByLevel(scope.row.level):'none'}">{{scope.row.standard.level3}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="Ⅳ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':(scope.row.level<=4&&scope.row.level>3)?getColorByLevel(scope.row.level):'none'}">{{scope.row.standard.level4}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="Ⅴ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':(scope.row.level<5&&scope.row.level>4)?getColorByLevel(scope.row.level):'none'}">{{scope.row.standard.level5}}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="劣Ⅴ类">
+                                <template slot-scope="scope">
+                                    <div :style="{'background':(scope.row.level==5)?getColorByLevel(scope.row.level):'none'}">{{scope.row.level6}}</div>
+                                </template>
+                            </el-table-column>
+                        </el-table-column>
+                    </el-table>
+                </div>
+                
+            </div>
+            <div v-if="analyseDetailType">
+                <el-table :data="analyseDetail.list">
+                    <el-table-column property="monitorName" label="检测点名" ></el-table-column>
+                    <el-table-column label="TN">
+                        <el-table-column property="tn" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
+                        <el-table-column label="等级" width="60px;">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.tnLevel)}">{{formatLevelByNum(scope.row.tnLevel)}}</div>
+                            </template>
+                        </el-table-column>
+                    </el-table-column>
+                    <el-table-column label="TP">
+                        <el-table-column property="tp" label="浓度(mg/L)" width="100px;" :formatter="floatFix"></el-table-column>
+                        <el-table-column label="等级" width="60px;">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.tpLevel)}">{{formatLevelByNum(scope.row.tpLevel)}}</div>
+                            </template>
+                        </el-table-column>
+                    </el-table-column>
+                    <el-table-column label="叶绿素">
+                        <el-table-column property="chlorophyll" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
+                        <!-- <el-table-column label="等级">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.chlorophyllLevel)}">{{formatLevelByNum(scope.row.chlorophyllLevel)}}</div>
+                            </template>
+                        </el-table-column> -->
+                    </el-table-column>
+                    <el-table-column label="DO">
+                        <el-table-column property="o2" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
+                        <el-table-column label="等级" width="60px;">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.o2Level)}">{{formatLevelByNum(scope.row.o2Level)}}</div>
+                            </template>
+                        </el-table-column>
+                    </el-table-column>
+                    <el-table-column label="COD">
+                        <el-table-column property="cod" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
+                        <el-table-column label="等级" width="60px;">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.codLevel)}">{{formatLevelByNum(scope.row.codLevel)}}</div>
+                            </template>
+                        </el-table-column>
+                    </el-table-column>
+                    <el-table-column label="BOD">
+                        <el-table-column property="bod" label="浓度(mg/L)"  width="100px;" :formatter="floatFix"></el-table-column>
+                        <el-table-column label="等级"  width="60px;">
+                            <template slot-scope="scope">
+                                <div :style="{'color':getColorByLevel(scope.row.bodLevel)}">{{formatLevelByNum(scope.row.bodLevel)}}</div>
+                            </template>
+                        </el-table-column>
+                    </el-table-column>
+                    <el-table-column label="水量(m3)" property="volumn" :formatter="volumnFix">
+
+                    </el-table-column>
+                </el-table>
+            </div>
         </el-dialog>
-        <el-dialog title="水质标准" :visible.sync="waterQualityStandardVisible">
+        <el-dialog width="60%" title="水质标准" :visible.sync="waterQualityStandardVisible">
             <el-table max-height="350" :data="waterQualityStandard">
-                <el-table-column property="name" label="名称" ></el-table-column>
+                <el-table-column width="250" property="name" label="名称" ></el-table-column>
                 <el-table-column property="level1" label="Ⅰ类"></el-table-column>
                 <el-table-column property="level2" label="Ⅱ类"></el-table-column>
                 <el-table-column property="level3" label="Ⅲ类"></el-table-column>
@@ -399,6 +583,10 @@
                         <el-input type="number" v-model="innerWaterPurifyStandard.o2" autocomplete="off"></el-input>
                     </el-form-item>
                 </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="innerWaterPurifyStandardVisible = false">取消</el-button>
+                    <el-button type="primary" @click="updateWaterPurifyStandard()">更新</el-button>
+                </div>
             </el-dialog>
         </el-dialog>
         <el-dialog
@@ -416,6 +604,10 @@
                     <el-input type="number" v-model="lakeInfo.area" autocomplete="off"></el-input>
                 </el-form-item>
             </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="lakeInfoVisible = false">取 消</el-button>
+                <el-button type="primary" @click="updateLake()">确 定</el-button>
+            </div>
         </el-dialog>
   </div>
 </template>
@@ -463,7 +655,8 @@ export default {
 
             ],
             tab: 'lake',
-            currentLake: '',
+            finishedCurrentLake: '',
+            unfinishedCurrentLake: '',
             currentAnalyse: {
 
             },
@@ -476,12 +669,14 @@ export default {
             addWaterQualityInfo: [],
             waterQualityStandardVisible: false,
             waterQualityStandard: [],
+            waterQualityNeededStandard: [],
             waterPurifyStandardVisible: false,
             waterPurifyStandard: [],
             innerWaterPurifyStandardVisible:false,
             innerWaterPurifyStandard: {},
             analyseDetailVisible: false,
             analyseDetail: {},
+            analyseDetailType: true,
             waterPurify: {
 
             },
@@ -544,12 +739,12 @@ export default {
     methods: {
         initContextMenu() {
             var contextmenuItems = [
-				{
-					text: '添加标记',
-					classname: 'bold',
-					icon: '/static/img/marker.png',
-					callback: this.addMarkerCallback
-                },
+				// {
+				// 	text: '添加标记',
+				// 	classname: 'bold',
+				// 	icon: '/static/img/marker.png',
+				// 	callback: this.addMarkerCallback
+                // },
 				{
 					text: '保存图片',
 					classname: 'bold',
@@ -605,9 +800,15 @@ export default {
                         this.contextMenu.push(removeMarkerItem);
                     } else if (feature && (feature.get('type') === 'monitor')) {
                         this.contextMenu.clear();
-                        removeMonitorItem.data = { feature: feature,type: "monitor" };
+                        const index = this.rawLakes.findIndex(item=>item.id === feature.values_.custom.lakeId);
+                        if(index != -1) {
+                            if(!this.rawLakes[index].finished) {
+                                removeMonitorItem.data = { feature: feature,type: "monitor" };
+                                this.contextMenu.push(removeMonitorItem);
+                            }
+                        }
                         showWaterQualities.data = {feature: feature};
-                        this.contextMenu.push(removeMonitorItem);
+                        
                         this.contextMenu.push(showWaterQualities);
                     } else if (feature && (feature.get('type') === 'lake')) {
                         this.contextMenu.clear();
@@ -615,9 +816,12 @@ export default {
                         showLakeInfo.data = { feature: feature};
                         addMonitorItem.data = {feature: feature};
                         updateWaterQuality.data = { feature: feature};
+                        if(!feature.values_.custom.finished) {
+                            this.contextMenu.push(addMonitorItem);
+                            this.contextMenu.push(updateWaterQuality);
+                        }
                         this.contextMenu.push(showLakeInfo);
-                        this.contextMenu.push(addMonitorItem);
-                        this.contextMenu.push(updateWaterQuality);
+                        
                     } 
                     f = feature;
                 });
@@ -731,7 +935,12 @@ export default {
         },
         removeMonitorCallback(obj) {
             var id = obj.data.feature.getId();
-            this.axios.get("/api/monitor/remove-monitor?id="+id)
+            this.$confirm('此操作将永久删除检测点, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.axios.get("/api/monitor/remove-monitor?id="+id)
 				.then(res=>{
                     this.markerLayers.marker.removeMarker(id);
                     this.rawMonitors = this.rawMonitors.filter(item => item.props.id !== id);
@@ -739,6 +948,9 @@ export default {
 				.catch(err=>{
 					this.$message.error(err.response.data.message);
 				})
+            }).catch(() => {
+                        
+            });
         },
         addMonitorDialog() {
             this.addMonitorDialogVisible = false;
@@ -880,6 +1092,14 @@ export default {
                     this.ploygonLayers.lake.addPloygon(lake.geo.coordinates,lake,{id:lake.id},"lake")
                 })
                 this.rawLakes = lakes;
+                if(this.rawLakes.length!=0) {
+                    const index = this.rawLakes.findIndex(item=>!item.finished);
+                    if(index!=-1) {
+                        this.jumpToLake(this.rawLakes[index].id);
+                    } else {
+                        this.jumpToLake(this.rawLakes[0].id);
+                    }
+                }
             }).catch(err=>{
                 this.$message.error(err.response.data.message);
             })
@@ -889,6 +1109,15 @@ export default {
                 this.axios.get("/api/water/water-quality-standard")
                 .then(res=>{
                     this.waterQualityStandard = res.data.standards;
+                    this.waterQualityNeededStandard = JSON.parse(res.data.neededStandards);
+                    this.waterQualityNeededStandard.chlorophyll = {
+                        level1:'',
+                        level2:'',
+                        level3:'',
+                        level4:'',
+                        level5:'',
+                        increment:false
+                    }
                 })
                 .catch(err=>{
                     this.$message.error(err.response.data.message);
@@ -943,7 +1172,7 @@ export default {
             
         },
         formatLevelByNum(num) {
-            if(num<=0) {
+            if(num<0) {
                 return "劣Ⅴ类";
             } else if(num < 1) {
                 return "Ⅰ类";
@@ -960,7 +1189,7 @@ export default {
             }
         },
         getColorByLevel(level) {
-            if(level<=0) {
+            if(level<0) {
                 return "#ff0000";
             } else if(level < 2) {
                 return "#00B050";
@@ -968,6 +1197,8 @@ export default {
                 return "#92D050";
             } else if(level < 4) {
                 return "#F68326";
+            } else if(level == 5) {
+                return "#ff0000"; 
             } else {
                 return "#ff0000"; 
             }
@@ -976,6 +1207,9 @@ export default {
             return this.formatLevelByNum(data);
         },
         getQualityByLakeId(lakeId) {
+            if(lakeId==''){
+                return ;
+            }
             this.axios.get("/api/quality/get-qualities-by-lake-id?lakeId="+lakeId)
             .then(res=>{
                 this.$set(this.waterQualityByLakeId,lakeId,res.data.qualities);
@@ -1017,6 +1251,59 @@ export default {
                 count+=q[key];
             }
             return count;
+        },
+        getPieOption(q) {
+            var data = {};
+            data["WF_TN"] = q.purify.wfTn;
+            data["WF_TP"] = q.purify.wfTp;
+            data["WF_CH"] = q.purify.wfTh;
+            data["WF_COD"] = q.purify.wfCod;
+            data["WF_BOD"] = q.purify.wfBod;
+            data["WF_DO"] = q.purify.wfDo;
+            data["WD_TN"] = q.purify.wdTn;
+            data["WD_TP"] = q.purify.wdTp;
+            data["WD_CH"] = q.purify.wdTh;
+            data["WD_COD"] = q.purify.wdCod;
+            data["WD_BOD"] = q.purify.wdBod;
+            data["WD_DO"] = q.purify.wdDo;
+            var temp = [];
+            var re = q.lakeInfo.area;
+            for(let item in data) {
+                if(data[item]>0) {
+                    re -= data[item];
+                    temp.push({"value":parseFloat(data[item]).toFixed(2),"name":item})
+                }
+            }
+            temp.push({"value":parseFloat(re).toFixed(2),"name":'剩余面积'})
+            var option = {
+                title: {
+                    text: '配方面积占比示意图',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                },
+                series: [
+                    {
+                        name: '配方',
+                        type: 'pie',
+                        radius: '50%',
+                        data:temp,
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            return option;
         },
         getOption(q) {
             var that = this;
@@ -1084,18 +1371,23 @@ export default {
             };
             return option;
         },
-        qualityChange(e) {
+        finishedQualityChange(e) {
+            this.qualityChange(e,this.finishedCurrentLake);
+        },
+        unfinishedQualityChange(e) {
+            this.qualityChange(e,this.unfinishedCurrentLake);
+        },
+        qualityChange(e,lakeId) {
             let data = new URLSearchParams();
             let ids = [];
-            let lake = this.lakes.find(lake=>lake.lakeInfo.id == this.currentLake);
-            let id = this.currentLake+""+e;
-            this.$set(this.currentAnalyse,this.currentLake,e);
+            let lake = this.lakes.find(lake=>lake.lakeInfo.id == lakeId);
+            let id = lakeId+""+e;
+            this.$set(this.currentAnalyse,lakeId,e);
             if(this.waterAnalyse[id]) {
                 // 
                 let echart = echarts.getInstanceByDom(document.getElementById(id));
                 // let option = this.getOption(q);
                 // echart.setOption(option);
-                // console.info(echart);
                 // window.addEventListener("resize", () => {echart.setOption(option);echart.resize();});
                 return ;
             }
@@ -1261,7 +1553,24 @@ export default {
                 data.append("volumn",param.volumn);
                 this.axios.post("/api/water/water-purify",data)
                 .then(res=> {
-                    this.$set(this.waterPurify,id,res.data.purify);
+                    const lake = this.rawLakes[this.rawLakes.findIndex(item=>item.id === lakeId)];
+                    let area = 0;
+                    if(lake) {
+                        area = lake.area;
+                    }
+                    var opt = {
+                        purify: res.data.purify,
+                        lakeInfo: {
+                            lakeId: lakeId,
+                            area: area
+                        }
+                    }
+                    this.$set(this.waterPurify,id,opt);
+                    this.$nextTick(()=>{
+                            let echart = echarts.init(document.getElementById("pie"+lakeId+''+monitorTime));
+                            let option = this.getPieOption(opt);
+                            echart.setOption(option);
+                        })
                 })
                 .catch(err=> {
                     this.$message.error(err.response.data.message);
@@ -1286,11 +1595,28 @@ export default {
                 if(monitor) {
                     item.monitorName = monitor.featureData.name;
                 }
-                
             }
             if(len >=0 && this.analyseDetail.list[len].monitorId === null) {
                 this.analyseDetail.list[len].monitorName = "整体入水";
             }
+            var tables = this.analyseDetail.tables = [];
+            this.analyseDetail.list.forEach((item)=>{
+                tables.push(
+                    {
+                        data:[
+                            {name: "COD",level6: (this.waterQualityNeededStandard.cod.increment?"<":">")+this.waterQualityNeededStandard.cod.level5,value: item.cod,level: item.codLevel,standard:this.waterQualityNeededStandard.cod},
+                            {name: "BOD",level6: (this.waterQualityNeededStandard.bod.increment?"<":">")+this.waterQualityNeededStandard.bod.level5,value: item.bod,level: item.bodLevel,standard:this.waterQualityNeededStandard.bod},
+                            {name: "DO",level6: (this.waterQualityNeededStandard.o2.increment?"<":">")+this.waterQualityNeededStandard.o2.level5,value: item.o2,level: item.o2Level,standard:this.waterQualityNeededStandard.o2},
+                            {name: "TN",level6: (this.waterQualityNeededStandard.tn.increment?"<":">")+this.waterQualityNeededStandard.tn.level5,value: item.tn,level: item.tnLevel,standard:this.waterQualityNeededStandard.tn},
+                            {name: "TP",level6: (this.waterQualityNeededStandard.tp.increment?"<":">")+this.waterQualityNeededStandard.tp.level5,value: item.tp,level: item.tpLevel,standard:this.waterQualityNeededStandard.tp},
+                            {name: "叶绿素",level6: "",value: item.chlorophyll,level: 0,standard:this.waterQualityNeededStandard.chlorophyll}
+                        ],
+                        monitorId: item.monitorId,
+                        monitorName: item.monitorName,
+                        volumn: item.volumn
+                    }
+                )
+            })
             this.analyseDetailVisible = true;
         },
         getUserWorkPlace() {
@@ -1312,9 +1638,93 @@ export default {
             this.lakeInfo = {
                 name: lakeInfo.name,
                 area: lakeInfo.area,
-                height: lakeInfo.height
+                height: lakeInfo.height,
+                id: lakeId
             },
             this.lakeInfoVisible = true;
+        },
+        updateLake() {
+            var data = new URLSearchParams();
+            data.append("lakeId",this.lakeInfo.id);
+            data.append("name",this.lakeInfo.name);
+            data.append("area",this.lakeInfo.area);
+            data.append("height",this.lakeInfo.height);
+            this.axios.post("/api/lake/update-lake",data)
+            .then(res=>{
+                if(res.data.res) {
+                    this.$message.success("更新成功");
+                    this.lakeInfoVisible = false;
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    this.$message.error("更新失败");
+                }
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        finishLake(lakeId) {
+            this.$confirm('项目将被放入历史项目中，可以查看数据但无法修改，请确认是否继续?', '提示', {
+                confirmButtonText: '确认',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.axios.get("/api/lake/finish-lake?lakeId="+lakeId)
+                .then(res=>{
+                    if(res.data.res == true) {
+                        this.$message.success("项目已结算");
+                        setTimeout(function(){ location.reload(); }, 1500);
+                    } else {
+                        this.$message.error("项目结算失败");
+                    }
+                })
+                .catch(err=>{
+                    this.$message.error(err.response.data.message);
+                })
+            }).catch(() => {
+                         
+            });
+        },
+        updateWaterPurifyStandard(){
+            var data = new URLSearchParams();
+            data.append("tn",this.innerWaterPurifyStandard.tn);
+            data.append("tp",this.innerWaterPurifyStandard.tp);
+            data.append("cod",this.innerWaterPurifyStandard.cod);
+            data.append("chlorophyll",this.innerWaterPurifyStandard.chlorophyll);
+            data.append("bod",this.innerWaterPurifyStandard.bod);
+            data.append("o2",this.innerWaterPurifyStandard.o2);
+            data.append("name",this.innerWaterPurifyStandard.name);
+            this.axios.post("/api/water/update-water-purify-standard",data)
+            .then(res=>{
+                if(res.data.res == true) {
+                    this.$message.success("更新成功");
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    this.$message.error("更新失败");
+                }
+            })
+            .catch(err=>{
+                    this.$message.error(err.response.data.message);
+            })
+        },
+        lakeDataClone(lakeId) {
+            var lake = this.rawLakes.find(item=>item.id==lakeId);
+            this.axios.get("/api/lake/data-clone?lakeId="+lakeId)
+            .then(res=>{
+                this.saveFile(lake.name+".txt",res.data.data);
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
+        },
+        saveFile(name, data) {
+            const blob = new Blob([data], {type: "text/plain"})
+            const a= document.createElement("a")
+            a.href = URL.createObjectURL(blob)
+            a.download = name
+            a.click()
+            URL.revokeObjectURL(a.href)
+    　　　  a.remove();
         }
     },
     mounted() {
@@ -1338,13 +1748,38 @@ export default {
         });
         resizeObserver.observe(document.body);
         window.addEventListener("resize", () => { 
-                if(this.currentLake && this.currentAnalyse[this.currentLake]) {
-                    const id = this.currentLake+""+this.currentAnalyse[this.currentLake];
+                if(this.unfinishedCurrentLake && this.currentAnalyse[this.unfinishedCurrentLake]) {
+                    const id = this.unfinishedCurrentLake+""+this.currentAnalyse[this.unfinishedCurrentLake];
                     const q = this.waterAnalyse[id];
-                    if(q) {
+                    const a = q.find(item=>{
+                        return item.id === null;
+                    })
+                    if(a) {
                         const echart = echarts.getInstanceByDom(document.getElementById(id));
-                        echart.setOption(this.getOption(q));
+                        echart.setOption(this.getOption(a));
                         echart.resize();
+                    }
+                    if(this.waterPurify[id]) {
+                        const pie = echarts.getInstanceByDom(document.getElementById("pie"+id));
+                        pie.setOption(this.getPieOption(this.waterPurify[id]));
+                        pie.resize();
+                    }
+                }
+                if(this.finishedCurrentLake && this.currentAnalyse[this.finishedCurrentLake]) {
+                    const id = this.finishedCurrentLake+""+this.currentAnalyse[this.finishedCurrentLake];
+                    const q = this.waterAnalyse[id];
+                    const a = q.find(item=>{
+                                return item.id === null;
+                            })
+                    if(a) {
+                        const echart = echarts.getInstanceByDom(document.getElementById(id));
+                        echart.setOption(this.getOption(a));
+                        echart.resize();
+                    }
+                    if(this.waterPurify[id]) {
+                        const pie = echarts.getInstanceByDom(document.getElementById("pie"+id));
+                        pie.setOption(this.getPieOption(this.waterPurify[id]));
+                        pie.resize();
                     }
                 }
                 
@@ -1352,6 +1787,7 @@ export default {
         this.initMarkers();
         this.initMonitors();
         this.initLake();
+        this.getWaterQualityStandard();
     }
 }
 </script>
@@ -1364,13 +1800,17 @@ export default {
 }
 .dark-item {
     background: #282c35;   
-}
->>>.el-collapse-item__header {
+}*/
+/* >>>.el-collapse-item__header {
     background: #282c35;   
-}
+} */
+/*
 >>>.el-collapse-item__content {
     background: #282c35;   
 } */
+>>>.el-dialog__body {
+    padding:10px;
+}
 >>>.el-collapse-item__content {
     padding-left:6px;
     padding-top:3px;
@@ -1474,4 +1914,5 @@ export default {
 .ol-popup-closer:after {
 	content: "✖";
 }
+
 </style>

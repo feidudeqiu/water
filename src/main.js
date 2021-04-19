@@ -18,19 +18,22 @@ router.beforeEach((to, from, next) => {
 		document.title = to.meta.title;
 	}
 	if (to.meta.requireAuth) {  // 判断该路由是否需要登录权限
-        if (store.getters.get_username) {  // 通过vuex state获取当前的token是否存在
-            next();
-        }
-        else {
+        if (!store.getters.get_username) {
             next({
                 path: '/login',  // 去登录页面
                 query: {redirect: to.path}  // 将跳转的路由path作为参数，登录成功后跳转到该路由
             })
         }
-    }
-    else {
-        next();
 	}
+	if(to.meta.requireRole) {
+		if(to.meta.requireRole > store.getters.get_role) {
+			next({
+                path: '/',  // 去主页
+                query: {redirect: to.path}  // 将跳转的路由path作为参数，登录成功后跳转到该路由
+            })
+		}
+	}
+    next();
 })
 // 为数据请求添上时间戳，防止缓存
 axios.interceptors.request.use(config => {
@@ -50,6 +53,8 @@ axios.interceptors.response.use(response => Promise.resolve(response),
         case 601: {
 			store.commit("remove_username");
 			store.commit("remove_role");
+			store.commit("remove_workPlace");
+			store.commit("remove_createTime");
 			router.replace({
 				path: '/login',
 				query: {redirect: router.currentRoute.fullPath}

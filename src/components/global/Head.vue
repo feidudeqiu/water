@@ -10,14 +10,17 @@
 				<img id="profilePhoto" class="profile" src="~static/img/background.jpg" />
 				<div v-if="logged" class="flex-column-inline menu">
 					<div class="text-black text-h4 text-thick" style="text-align:center;">{{username}}</div>
-					
-					<div class="flex-row-inline menu-item" @click="jumpToGs()">
+					<div class="flex-row-inline menu-item" @click="$router.push('/user-center');">
+						<img class="menu-icon" src="~static/img/username.png" />
+						<div class="choice">用户中心</div>
+					</div>
+					<!-- <div v-if="isAdministrator" class="flex-row-inline menu-item" @click="jumpToGs()">
 						<img class="menu-icon" src="~static/img/earth.png" />
 						<div class="choice">GS</div>
-					</div>
+					</div> -->
 
-					<div v-if="isAdministrator" class="flex-row-inline menu-item" @click="$router.push('/user-center');">
-						<img class="menu-icon" src="~static/img/username.png" />
+					<div v-if="isAdministrator" class="flex-row-inline menu-item" @click="$router.push('/user-center/uc-register');">
+						<img class="menu-icon" src="~static/img/users.png" />
 						<div class="choice">用户管理</div>
 					</div>
 					<div class="flex-row-inline menu-item" @click="logout()">

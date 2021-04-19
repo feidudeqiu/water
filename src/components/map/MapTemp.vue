@@ -998,7 +998,6 @@ export default {
                 let echart = echarts.getInstanceByDom(document.getElementById(id));
                 // let option = this.getOption(q);
                 // echart.setOption(option);
-                // console.info(echart);
                 // window.addEventListener("resize", () => {echart.setOption(option);echart.resize();});
                 return ;
             }

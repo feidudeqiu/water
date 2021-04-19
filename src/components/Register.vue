@@ -15,19 +15,25 @@
                     <el-form-item prop="passwordConfirm" label="确认密码">
                         <el-input type="password" show-password maxlength="16" v-model="registerForm.passwordConfirm"></el-input>
                     </el-form-item>
-                    <el-form-item prop="email" label="邮件">
+                    <el-form-item prop="email" label="邮箱">
                         <el-input type="email" maxlength="50" v-model="registerForm.email">
                             <el-button @click="registerMail()" :disabled="sendable" slot="append">{{registerForm.emailTimeOut===0?'获取验证码':'请'+registerForm.emailTimeOut+'秒后再试'}}</el-button>
                         </el-input>
                     </el-form-item>
                     <el-form-item prop="pin" label="验证码">
-                        <el-input :disabled="!registerForm.pinSend" maxlength="6" v-model="registerForm.pin"></el-input>
+                        <el-input maxlength="6" v-model="registerForm.pin"></el-input>
                     </el-form-item>
                     <el-form-item prop="workPlace" label="工作单位">
                         <el-input maxlength="50" v-model="registerForm.workPlace"></el-input>
                     </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="register('ruleForm')">立即注册</el-button>
+                    <el-form-item >
+                        <div class="flex-row-inline">
+                            <el-button :disabled="registerFlag" type="primary" @click="register('ruleForm')">立即注册</el-button>
+                            <el-tooltip placement="bottom" content="用户注册提交后需要管理员审核才能通过">
+                                <i style="font-size:20px;margin-left:10px;" class="el-icon-info text-gray"></i>
+                            </el-tooltip>
+                        </div>
+                        
                     </el-form-item>
                 </el-form>
             </div>
@@ -88,6 +94,7 @@ export default {
             }    
         };
         return {
+            registerFlag: false,
             registerForm: {
                 username: "",
                 password: "",
@@ -96,7 +103,6 @@ export default {
                 emailStatus: false,
                 emailTimeOut: 0,
                 pin: "",
-                pinSend: false,
                 workPlace: "",
             },
             rules: {
@@ -123,18 +129,38 @@ export default {
         register(formName) {
             this.$refs[formName].validate((valid) => {
                 if (valid) {
-
+                    this.registerPost();
                 } else {
-                    
                     return false;
                 }
             });
+        },
+        registerPost() {
+            this.registerFlag = true;
+            let data = new URLSearchParams();
+            data.append("username",this.registerForm.username);
+            data.append("password",this.registerForm.password);
+            data.append("email",this.registerForm.email);
+            data.append("pin",this.registerForm.pin);
+            data.append("workPlace",this.registerForm.workPlace);
+            this.axios.post("/api/sign/sign-in/register",data)
+            .then(res=>{
+                this.$message.success("注册提交成功，请等待管理员审核，注册结果由邮件通知");
+                this.registerFlag = false;
+                setTimeout(()=>{
+                    this.$router.replace("/login");
+                },1500)
+            })
+            .catch(err=>{
+                this.registerFlag = false;
+                this.$message.error(err.response.data.message);
+            })
+
         },
         registerMail() {
             this.registerForm.emailStatus = true;
             this.axios.get("/api/sign/sign-in/register-mail?to="+this.registerForm.email)
             .then(res=>{
-                this.registerForm.pinSend = true;
                 this.registerForm.emailTimeOut = 60;
                 var interval = setInterval(() => {
                     this.registerForm.emailTimeOut --;

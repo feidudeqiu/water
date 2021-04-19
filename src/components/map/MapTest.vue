@@ -347,7 +347,6 @@ export default {
 			var features = this.layers[0].getSource().getFeaturesAtCoordinate(e.coordinate);
 			// var pixel = this.map.getPixelFromCoordinate(e.coordinate);
 			// this.layers[0].getFeatures(pixel).then((features)=> {
-				console.info(features);
 				var feature = features.length > 0 ? features[0] : undefined;
 				if(feature === undefined) {
 					this.$message.info("该地点无详情信息");
@@ -388,14 +387,12 @@ export default {
 			this.addMarkerDialogVisible = true;
 		},
 		removeMarkerCallback(obj) {
-			console.info(obj);
 			this.axios.get("/api/marker/remove-marker?markerId="+obj.data.marker.values_.id)
 				.then(res=>{
 					this.vectorLayer.getSource().removeFeature(obj.data.marker);
 					this.markers.splice(this.markers.findIndex(item => item.id === obj.data.marker.values_.id), 1)
 				})
 				.catch(err=>{
-					console.info(err);
 					this.$message.error(err.response.data.message);
 				})
 			
@@ -457,7 +454,6 @@ export default {
 			var input = document.getElementById('search-input');
 			var that = this;
 			button.onclick = function() {
-				console.info(input.value);
 				var features = that.searchByFeature(name,input.value);
 				if(features.length == 0) {
 					that.$message.info("不存在查找对象");
@@ -515,10 +511,8 @@ export default {
 			var geojsonUrl = urlString + this.getParamString(param, urlString);
 			this.axios.get(geojsonUrl)
 				.then(res=>{
-					console.info(res);
 				})
 				.catch(err=>{
-					console.info(err);
 				})
 		},
 		getParamString(obj, existingUrl, uppercase){

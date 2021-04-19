@@ -158,7 +158,6 @@ export default {
                 })
                 this.rawLakes = lakes;
             }).catch(err=>{
-                console.info(err);
                 this.$message.error(err.response.data.message);
             })
         },

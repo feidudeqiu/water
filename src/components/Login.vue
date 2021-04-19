@@ -9,6 +9,10 @@
                     <div style="width: fit-content;">
                         <input maxlength="20" class="input-login input-background-username" v-model="username" placeholder="用户名">
                         <input @keyup.enter="login()" type="password" maxlength="16" class="input-login input-background-pwd" style="margin-bottom:10px;" v-model="password" placeholder="密码">
+                        <div style="display:flex;justify-content:space-between;">
+                            <div></div>
+                            <span @click="$router.push('/changePwd');" style="text-decoration: underline;cursor:pointer;font-size:12px;color:red;margin-right:10px;">忘记密码</span>
+                        </div>
                         <div class="flex-row-center">
                             <div class="flex-row-inline" style="width:100%;justify-content: space-between;margin-top:10px;">
                                 <div class="option-button flex-row-center" style="background: #19be6b;cursor:pointer;color:white" @click="login()">登录</div>
