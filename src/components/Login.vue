@@ -97,8 +97,9 @@ export default {
                     that.$store.commit("set_role",res.data.role);
                     that.$store.commit("set_workPlace",res.data.workPlace);
                     that.$store.commit("set_createTime",res.data.createTime);
-                    loading.close();
                     that.$router.push("/index");
+                    loading.close();
+                    
                 })
                 .catch(function (err) {
                     that.$message.error(err.response.data.message);

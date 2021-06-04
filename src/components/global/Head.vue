@@ -5,7 +5,7 @@
           <img src="~static/img/logo.svg" style="height:45px;" />
         </a>
         <div style="height:40px;display:flex;justify-content:space-between;flex:2;min-width:150px;">
-			<div class="text-h3 text-thick" style="flex:1;text-align:center;color:#E65800;">流域静态水体水环境治理智慧系统（1.0）</div>
+			<div class="text-h3 text-thick" style="flex:1;text-align:center;color:#E65800;cursor: pointer;" @click="$router.push('/index');">流域静态水体水环境治理智慧系统（1.0）</div>
 			<div class="mine" style="position:relative;margin-left:50px;margin-right:75px;">
 				<img id="profilePhoto" class="profile" src="~static/img/background.jpg" />
 				<div v-if="logged" class="flex-column-inline menu">
