@@ -679,6 +679,22 @@
                 <el-button :disabled="moveMonitorRatio.ratios.length==0" type="primary" @click="moveMonitor()">移 动</el-button>
             </div>
         </el-dialog>
+        <el-dialog
+            title="修改检测点信息"
+            :visible.sync="editMonitorVisible">
+            <el-form size="mini" label-width="150px" :model="editMonitorForm">
+                <el-form-item label="检测点名称">
+                    <el-input maxlength="32" v-model="editMonitorForm.name" autocomplete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="检测点注释">
+                    <el-input maxlength="512" v-model="editMonitorForm.note" autocomplete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="editMonitorVisible = false">取 消</el-button>
+                <el-button type="primary" @click="editMonitor()">确 定</el-button>
+            </div>
+        </el-dialog>
   </div>
 </template>
 
@@ -773,6 +789,12 @@ export default {
                 ratios: [],
                 value: '',
                 coordinate:[]
+            },
+            editMonitorVisible: false,
+            editMonitorForm: {
+                id: "",
+                name: "",
+                note: ""
             }
         }
     },
@@ -953,6 +975,11 @@ export default {
                     icon: '/static/img/move.png',
                     callback: this.moveMonitorCallback
                 }
+                var editMonitor = {
+                    text: '修改检测点信息',
+                    icon: '/static/img/info.png',
+                    callback: this.editMonitorInfoCallback
+                }
                 let f = null;
                 this.map.forEachFeatureAtPixel(evt.pixel, feature=>{
                     if (feature && (feature.get('type') === 'marker')) {
@@ -965,7 +992,9 @@ export default {
                         if(index != -1) {
                             if(!this.rawLakes[index].finished) {
                                 removeMonitorItem.data = { feature: feature,type: "monitor" };
+                                editMonitor.data = {feature: feature,type: "monitor" };
                                 this.contextMenu.push(removeMonitorItem);
+                                this.contextMenu.push(editMonitor);
                             }
                         }
                         showWaterQualities.data = {feature: feature};
@@ -1044,8 +1073,33 @@ export default {
             var custom = obj.data.feature.values_.custom;
             ht+="<span style='font-size:14px;'>检测点名称:"+custom.name+"</span></br>";
             ht+="<span style='font-size:14px;'>检测点注释:"+custom.note+"</span></br>";
-            // ht+="<span style='font-size:14px;'>平均深度:"+parseFloat(custom.height).toFixed(2)+"(米)</span></br>";
+            ht+="<span style='font-size:14px;'>检测点坐标:("+obj.coordinate[0]+","+obj.coordinate[1]+")</span></br>";
             this.popupLayer.showInfo(ht,obj.coordinate);
+        },
+        editMonitorInfoCallback(obj) {
+            this.editMonitorForm.name = obj.data.feature.values_.custom.name;
+            this.editMonitorForm.note = obj.data.feature.values_.custom.note;
+            this.editMonitorForm.id = obj.data.feature.values_.custom.id;
+            this.editMonitorVisible = true;
+        },
+        editMonitor() {
+            let data = new URLSearchParams();
+            data.append("id",this.editMonitorForm.id);
+            data.append("name",this.editMonitorForm.name);
+            data.append("note",this.editMonitorForm.note);
+            this.axios.post("/api/monitor/edit-monitor",data)
+            .then(res=> {
+                if(res.data.res) {
+                    this.$message.success("更新成功");
+                    this.editMonitorVisible = false;
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    this.$message.error("更新失败");
+                }
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
         },
         moveMonitorCallback(obj) {
             const lakeId = obj.data.feature.getId();
@@ -1064,7 +1118,23 @@ export default {
             this.moveMonitorVisible = true;
         },
         moveMonitor() {
-            console.info(this.moveMonitorRatio);
+            let data = new URLSearchParams();
+            data.append("id",this.moveMonitorRatio.value);
+            data.append("locationX",this.moveMonitorRatio.coordinate[0]);
+            data.append("locationY",this.moveMonitorRatio.coordinate[1]);
+            this.axios.post("/api/monitor/edit-monitor",data)
+            .then(res=> {
+                if(res.data.res) {
+                    this.$message.success("更新成功");
+                    this.moveMonitorVisible = false;
+                    setTimeout(function(){ location.reload(); }, 1500);
+                } else {
+                    this.$message.error("更新失败");
+                }
+            })
+            .catch(err=>{
+                this.$message.error(err.response.data.message);
+            })
         },
         addMarkerCallback(e) {
             this.addMarkerInfo = {
@@ -1215,7 +1285,6 @@ export default {
                     if(lake) {
                         finished = lake.finished;
                     }
-                    console.info(monitor,lake);
                 }
                 
                 this.waterQualityById.quality = res.data.qualities;
